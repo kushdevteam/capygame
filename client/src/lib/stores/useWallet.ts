@@ -3,14 +3,14 @@ import { create } from 'zustand';
 interface User {
     walletAddress: string;
     username: string;
-    pin: string;
+    seedPhrase: string;
 }
 
 interface AuthState {
     user: User | null;
     isLoggedIn: boolean;
-    login: (walletAddress: string, pin: string) => Promise<boolean>;
-    register: (walletAddress: string, username: string, pin: string) => Promise<boolean>;
+    login: (walletAddress: string, seedPhrase: string) => Promise<boolean>;
+    register: (walletAddress: string, username: string, seedPhrase: string) => Promise<boolean>;
     logout: () => void;
     setUser: (user: User | null) => void;
 }
@@ -19,12 +19,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     user: null,
     isLoggedIn: false,
     
-    login: async (walletAddress: string, pin: string) => {
+    login: async (walletAddress: string, seedPhrase: string) => {
         try {
             const response = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ walletAddress, pin })
+                body: JSON.stringify({ walletAddress, seedPhrase })
             });
             
             if (response.ok) {
@@ -40,12 +40,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
     },
     
-    register: async (walletAddress: string, username: string, pin: string) => {
+    register: async (walletAddress: string, username: string, seedPhrase: string) => {
         try {
             const response = await fetch('/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ walletAddress, username, pin })
+                body: JSON.stringify({ walletAddress, username, seedPhrase })
             });
             
             if (response.ok) {

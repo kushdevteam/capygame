@@ -5,6 +5,8 @@ import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Label } from './ui/label';
+import { generateSeedPhrase, validateSeedPhrase, formatSeedPhrase } from '../utils/seedPhraseGenerator';
+import { isValidSolanaAddress, formatSolanaAddress } from '../utils/solanaValidator';
 
 interface AuthModalProps {
     isOpen: boolean;
@@ -17,33 +19,43 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     
     // Login form state
     const [loginWallet, setLoginWallet] = useState('');
-    const [loginPin, setLoginPin] = useState('');
+    const [loginSeedPhrase, setLoginSeedPhrase] = useState('');
     
     // Register form state
     const [registerWallet, setRegisterWallet] = useState('');
     const [registerUsername, setRegisterUsername] = useState('');
-    const [registerPin, setRegisterPin] = useState('');
-    const [confirmPin, setConfirmPin] = useState('');
+    const [generatedSeedPhrase, setGeneratedSeedPhrase] = useState('');
+    const [confirmSeedPhrase, setConfirmSeedPhrase] = useState('');
     
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!loginWallet || !loginPin) {
+        if (!loginWallet || !loginSeedPhrase) {
             setError('Please fill in all fields');
+            return;
+        }
+        
+        if (!isValidSolanaAddress(loginWallet)) {
+            setError('Please enter a valid Solana wallet address');
+            return;
+        }
+        
+        if (!validateSeedPhrase(loginSeedPhrase)) {
+            setError('Please enter a valid 4-word seed phrase');
             return;
         }
         
         setLoading(true);
         setError('');
         
-        const success = await login(loginWallet, loginPin);
+        const success = await login(loginWallet, formatSeedPhrase(loginSeedPhrase));
         if (success) {
             onClose();
             resetForms();
         } else {
-            setError('Invalid wallet address or PIN');
+            setError('Invalid wallet address or seed phrase');
         }
         
         setLoading(false);
@@ -51,25 +63,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!registerWallet || !registerUsername || !registerPin) {
+        if (!registerWallet || !registerUsername || !generatedSeedPhrase || !confirmSeedPhrase) {
             setError('Please fill in all fields');
             return;
         }
         
-        if (registerPin !== confirmPin) {
-            setError('PINs do not match');
+        if (!isValidSolanaAddress(registerWallet)) {
+            setError('Please enter a valid Solana wallet address');
             return;
         }
         
-        if (registerPin.length !== 4 || !/^\d+$/.test(registerPin)) {
-            setError('PIN must be exactly 4 digits');
+        if (formatSeedPhrase(generatedSeedPhrase) !== formatSeedPhrase(confirmSeedPhrase)) {
+            setError('Seed phrases do not match');
+            return;
+        }
+        
+        if (!validateSeedPhrase(generatedSeedPhrase)) {
+            setError('Generated seed phrase is invalid');
             return;
         }
         
         setLoading(true);
         setError('');
         
-        const success = await register(registerWallet, registerUsername, registerPin);
+        const success = await register(registerWallet, registerUsername, formatSeedPhrase(generatedSeedPhrase));
         if (success) {
             onClose();
             resetForms();
@@ -82,13 +99,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
     const resetForms = () => {
         setLoginWallet('');
-        setLoginPin('');
+        setLoginSeedPhrase('');
         setRegisterWallet('');
         setRegisterUsername('');
-        setRegisterPin('');
-        setConfirmPin('');
+        setGeneratedSeedPhrase('');
+        setConfirmSeedPhrase('');
         setError('');
         setActiveTab('login');
+    };
+    
+    const generateNewSeedPhrase = () => {
+        const newPhrase = generateSeedPhrase();
+        setGeneratedSeedPhrase(newPhrase);
+        setConfirmSeedPhrase('');
     };
 
     const formatWalletAddress = (address: string) => {
@@ -97,16 +120,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-lg bg-white/95 backdrop-blur border-0 shadow-2xl" aria-describedby="auth-modal-description">
+            <DialogContent className="sm:max-w-lg bg-amber-900/30 backdrop-blur-md border-amber-500/30 shadow-2xl" aria-describedby="auth-modal-description">
                 <DialogHeader className="text-center pb-6">
-                    <DialogTitle className="text-2xl font-bold text-gray-900">Welcome</DialogTitle>
-                    <div id="auth-modal-description" className="text-sm text-gray-600 mt-2">
-                        Connect with your wallet address and PIN
+                    <DialogTitle className="text-2xl font-bold text-white">Welcome</DialogTitle>
+                    <div id="auth-modal-description" className="text-sm text-amber-200 mt-2">
+                        Connect with your Solana wallet and 4-word seed phrase
                     </div>
                 </DialogHeader>
                 
                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'login' | 'register')}>
-                    <TabsList className="grid w-full grid-cols-2 bg-gray-100 rounded-lg p-1">
+                    <TabsList className="grid w-full grid-cols-2 bg-amber-800/30 rounded-lg p-1">
                         <TabsTrigger value="login" className="rounded-md font-medium">Sign In</TabsTrigger>
                         <TabsTrigger value="register" className="rounded-md font-medium">Create Account</TabsTrigger>
                     </TabsList>
@@ -114,7 +137,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     <TabsContent value="login" className="space-y-6 mt-6">
                         <form onSubmit={handleLogin} className="space-y-5">
                             <div className="space-y-2">
-                                <Label htmlFor="loginWallet" className="text-sm font-medium text-gray-700">
+                                <Label htmlFor="loginWallet" className="text-sm font-medium text-amber-100">
                                     Wallet Address
                                 </Label>
                                 <Input
@@ -122,34 +145,33 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                                     placeholder="Enter your wallet address"
                                     value={loginWallet}
                                     onChange={(e) => setLoginWallet(formatWalletAddress(e.target.value))}
-                                    className="h-12 font-mono text-sm border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                                    className="h-12 font-mono text-sm bg-amber-900/20 border-amber-400/30 text-white placeholder:text-amber-200/60 focus:border-amber-400 focus:ring-amber-400"
                                     maxLength={44}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="loginPin" className="text-sm font-medium text-gray-700">
-                                    4-Digit PIN
+                                <Label htmlFor="loginSeedPhrase" className="text-sm font-medium text-amber-100">
+                                    4-Word Seed Phrase
                                 </Label>
                                 <Input
-                                    id="loginPin"
+                                    id="loginSeedPhrase"
                                     type="password"
-                                    placeholder="••••"
-                                    value={loginPin}
-                                    onChange={(e) => setLoginPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                                    className="h-12 font-mono text-center text-lg tracking-widest border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                                    maxLength={4}
+                                    placeholder="capybara forest golden harmony"
+                                    value={loginSeedPhrase}
+                                    onChange={(e) => setLoginSeedPhrase(e.target.value)}
+                                    className="h-12 font-mono text-sm bg-amber-900/20 border-amber-400/30 text-white placeholder:text-amber-200/60 focus:border-amber-400 focus:ring-amber-400"
                                 />
                             </div>
                             
                             {error && (
-                                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                                <div className="bg-red-900/20 border border-red-400/30 text-red-300 px-4 py-3 rounded-lg text-sm">
                                     {error}
                                 </div>
                             )}
                             
                             <Button 
                                 type="submit" 
-                                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                                className="w-full h-12 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors"
                                 disabled={loading}
                             >
                                 {loading ? 'Signing in...' : 'Sign In'}
@@ -160,7 +182,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     <TabsContent value="register" className="space-y-6 mt-6">
                         <form onSubmit={handleRegister} className="space-y-5">
                             <div className="space-y-2">
-                                <Label htmlFor="registerWallet" className="text-sm font-medium text-gray-700">
+                                <Label htmlFor="registerWallet" className="text-sm font-medium text-amber-100">
                                     Wallet Address
                                 </Label>
                                 <Input
@@ -168,12 +190,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                                     placeholder="Enter your wallet address"
                                     value={registerWallet}
                                     onChange={(e) => setRegisterWallet(formatWalletAddress(e.target.value))}
-                                    className="h-12 font-mono text-sm border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                                    className="h-12 font-mono text-sm bg-amber-900/20 border-amber-400/30 text-white placeholder:text-amber-200/60 focus:border-amber-400 focus:ring-amber-400"
                                     maxLength={44}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="registerUsername" className="text-sm font-medium text-gray-700">
+                                <Label htmlFor="registerUsername" className="text-sm font-medium text-amber-100">
                                     Username
                                 </Label>
                                 <Input
@@ -181,50 +203,58 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                                     placeholder="Choose a username"
                                     value={registerUsername}
                                     onChange={(e) => setRegisterUsername(e.target.value)}
-                                    className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                                    className="h-12 bg-amber-900/20 border-amber-400/30 text-white placeholder:text-amber-200/60 focus:border-amber-400 focus:ring-amber-400"
                                     maxLength={20}
                                 />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="registerPin" className="text-sm font-medium text-gray-700">
-                                        4-Digit PIN
+                                    <Label htmlFor="generatedSeedPhrase" className="text-sm font-medium text-amber-100">
+                                        Your 4-Word Seed Phrase
                                     </Label>
-                                    <Input
-                                        id="registerPin"
-                                        type="password"
-                                        placeholder="••••"
-                                        value={registerPin}
-                                        onChange={(e) => setRegisterPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                                        className="h-12 font-mono text-center text-lg tracking-widest border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                                        maxLength={4}
-                                    />
+                                    <div className="flex gap-2">
+                                        <Input
+                                            id="generatedSeedPhrase"
+                                            value={generatedSeedPhrase}
+                                            readOnly
+                                            className="h-12 font-mono text-sm bg-amber-900/40 border-amber-400/30 text-amber-100 cursor-default"
+                                            placeholder="Click Generate to create your phrase"
+                                        />
+                                        <Button
+                                            type="button"
+                                            onClick={generateNewSeedPhrase}
+                                            className="h-12 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
+                                        >
+                                            Generate
+                                        </Button>
+                                    </div>
+                                    <p className="text-xs text-amber-200/80">
+                                        Save this phrase securely - you'll need it to sign in!
+                                    </p>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="confirmPin" className="text-sm font-medium text-gray-700">
-                                        Confirm PIN
+                                    <Label htmlFor="confirmSeedPhrase" className="text-sm font-medium text-amber-100">
+                                        Confirm Seed Phrase
                                     </Label>
                                     <Input
-                                        id="confirmPin"
-                                        type="password"
-                                        placeholder="••••"
-                                        value={confirmPin}
-                                        onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                                        className="h-12 font-mono text-center text-lg tracking-widest border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                                        maxLength={4}
+                                        id="confirmSeedPhrase"
+                                        placeholder="Type your seed phrase to confirm"
+                                        value={confirmSeedPhrase}
+                                        onChange={(e) => setConfirmSeedPhrase(e.target.value)}
+                                        className="h-12 font-mono text-sm bg-amber-900/20 border-amber-400/30 text-white placeholder:text-amber-200/60 focus:border-amber-400 focus:ring-amber-400"
                                     />
                                 </div>
                             </div>
                             
                             {error && (
-                                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                                <div className="bg-red-900/20 border border-red-400/30 text-red-300 px-4 py-3 rounded-lg text-sm">
                                     {error}
                                 </div>
                             )}
                             
                             <Button 
                                 type="submit" 
-                                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                                className="w-full h-12 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors"
                                 disabled={loading}
                             >
                                 {loading ? 'Creating Account...' : 'Create Account'}

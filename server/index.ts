@@ -1,7 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import "./telegram-bot"; // Start the Telegram bot
 
 const app = express();
 app.use(express.json());
@@ -38,6 +37,13 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Try to start the Telegram bot (will be disabled if token is missing)
+  try {
+    await import("./telegram-bot");
+  } catch (error) {
+    console.log("Telegram bot not started - this is normal if no token is provided");
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

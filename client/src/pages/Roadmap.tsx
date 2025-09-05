@@ -93,32 +93,43 @@ export const Roadmap: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'border-green-400/30 bg-green-400/10';
-      case 'in-progress': return 'border-yellow-400/30 bg-yellow-400/10';
-      case 'planned': return 'border-blue-400/30 bg-blue-400/10';
-      case 'future': return 'border-purple-400/30 bg-purple-400/10';
-      default: return 'border-white/20 bg-white/10';
+      case 'completed': return 'border-emerald-400/30 bg-emerald-400/20';
+      case 'in-progress': return 'border-amber-400/30 bg-amber-400/20';
+      case 'planned': return 'border-orange-400/30 bg-orange-400/20';
+      case 'future': return 'border-yellow-400/30 bg-yellow-400/20';
+      default: return 'border-amber-400/20 bg-amber-400/10';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto px-6 py-8 max-w-6xl">
+    <div className="min-h-screen relative">
+      {/* Game Background */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ 
+          backgroundImage: `url('/images/AAA_capybara_wetland_background_ab88ce49.png')`,
+          filter: 'brightness(0.6) contrast(1.1)'
+        }}
+      />
+      {/* Atmospheric overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40" />
+      
+      <div className="relative z-10 container mx-auto px-6 py-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
           <Button 
             onClick={handleBack} 
             variant="outline" 
-            className="mb-4 text-white border-white/20 hover:bg-white/10"
+            className="mb-4 text-amber-100 border-amber-400/30 hover:bg-amber-500/20 backdrop-blur-sm"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Development
-            <span className="text-cyan-400"> Roadmap</span>
+            <span className="text-amber-300"> Roadmap</span>
           </h1>
-          <p className="text-xl text-blue-200 max-w-3xl">
+          <p className="text-xl text-amber-100 max-w-3xl">
             Our journey to build the ultimate play-to-earn gaming experience on Solana. 
             Track our progress and see what's coming next.
           </p>
@@ -126,32 +137,32 @@ export const Roadmap: React.FC = () => {
 
         {/* Stats Overview */}
         <div className="grid md:grid-cols-4 gap-4 mb-12">
-          <Card className="bg-white/10 backdrop-blur-md border-white/20 text-center">
+          <Card className="bg-amber-900/20 backdrop-blur-md border-amber-500/30 hover:bg-amber-900/30 transition-all duration-300 text-center">
             <CardContent className="p-6">
               <Trophy className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
               <h3 className="text-2xl font-bold text-white">12</h3>
-              <p className="text-blue-200">Levels Complete</p>
+              <p className="text-amber-100">Levels Complete</p>
             </CardContent>
           </Card>
-          <Card className="bg-white/10 backdrop-blur-md border-white/20 text-center">
+          <Card className="bg-amber-900/20 backdrop-blur-md border-amber-500/30 hover:bg-amber-900/30 transition-all duration-300 text-center">
             <CardContent className="p-6">
               <Users className="h-8 w-8 text-blue-400 mx-auto mb-2" />
               <h3 className="text-2xl font-bold text-white">1000+</h3>
-              <p className="text-blue-200">Early Players</p>
+              <p className="text-amber-100">Early Players</p>
             </CardContent>
           </Card>
-          <Card className="bg-white/10 backdrop-blur-md border-white/20 text-center">
+          <Card className="bg-amber-900/20 backdrop-blur-md border-amber-500/30 hover:bg-amber-900/30 transition-all duration-300 text-center">
             <CardContent className="p-6">
               <Zap className="h-8 w-8 text-purple-400 mx-auto mb-2" />
               <h3 className="text-2xl font-bold text-white">5</h3>
-              <p className="text-blue-200">Major Phases</p>
+              <p className="text-amber-100">Major Phases</p>
             </CardContent>
           </Card>
-          <Card className="bg-white/10 backdrop-blur-md border-white/20 text-center">
+          <Card className="bg-amber-900/20 backdrop-blur-md border-amber-500/30 hover:bg-amber-900/30 transition-all duration-300 text-center">
             <CardContent className="p-6">
               <Rocket className="h-8 w-8 text-pink-400 mx-auto mb-2" />
               <h3 className="text-2xl font-bold text-white">Q1 2025</h3>
-              <p className="text-blue-200">Token Launch</p>
+              <p className="text-amber-100">Token Launch</p>
             </CardContent>
           </Card>
         </div>
@@ -166,14 +177,14 @@ export const Roadmap: React.FC = () => {
                     {phase.icon}
                     <div>
                       <h2 className="text-2xl font-bold">{phase.phase}: {phase.title}</h2>
-                      <p className="text-sm text-blue-200 font-normal">{phase.timeline}</p>
+                      <p className="text-sm text-amber-200 font-normal">{phase.timeline}</p>
                     </div>
                   </CardTitle>
                   <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    phase.status === 'completed' ? 'bg-green-400/20 text-green-300' :
-                    phase.status === 'in-progress' ? 'bg-yellow-400/20 text-yellow-300' :
-                    phase.status === 'planned' ? 'bg-blue-400/20 text-blue-300' :
-                    'bg-purple-400/20 text-purple-300'
+                    phase.status === 'completed' ? 'bg-emerald-400/20 text-emerald-300' :
+                    phase.status === 'in-progress' ? 'bg-amber-400/20 text-amber-300' :
+                    phase.status === 'planned' ? 'bg-orange-400/20 text-orange-300' :
+                    'bg-yellow-400/20 text-yellow-300'
                   }`}>
                     {phase.status.replace('-', ' ').toUpperCase()}
                   </div>
@@ -182,7 +193,7 @@ export const Roadmap: React.FC = () => {
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-4">
                   {phase.items.map((item, itemIndex) => (
-                    <div key={itemIndex} className="text-blue-100 flex items-start gap-2">
+                    <div key={itemIndex} className="text-amber-50 flex items-start gap-2">
                       <span className="text-sm mt-1">{item.substring(0, 2)}</span>
                       <span className="flex-1">{item.substring(2)}</span>
                     </div>
@@ -194,20 +205,20 @@ export const Roadmap: React.FC = () => {
         </div>
 
         {/* Call to Action */}
-        <Card className="mt-12 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 backdrop-blur-md border-cyan-400/30">
+        <Card className="mt-12 bg-gradient-to-r from-amber-500/20 to-emerald-500/20 backdrop-blur-md border-amber-400/30">
           <CardContent className="p-8 text-center">
             <h2 className="text-3xl font-bold text-white mb-4">Be Part of Our Journey</h2>
-            <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
+            <p className="text-amber-50 mb-6 max-w-2xl mx-auto">
               Join thousands of players already enjoying Save the Capybara. Connect your wallet, 
               start playing, and earn rewards as we build the future of gaming together.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold px-8 py-3">
+              <Button className="bg-gradient-to-r from-amber-500 to-emerald-600 hover:from-amber-600 hover:to-emerald-700 text-white font-bold px-8 py-3">
                 Start Playing Now
               </Button>
               <Button 
                 variant="outline" 
-                className="text-white border-white/30 hover:bg-white/10 px-8 py-3"
+                className="text-amber-100 border-amber-300/30 hover:bg-amber-500/20 px-8 py-3"
                 onClick={() => window.open('https://t.me/SaveCapybaraBot', '_blank')}
               >
                 Join Telegram Community
@@ -217,7 +228,7 @@ export const Roadmap: React.FC = () => {
         </Card>
 
         {/* Footer */}
-        <div className="mt-12 text-center text-blue-300/70">
+        <div className="mt-12 text-center text-amber-200/70">
           <p className="text-sm">
             Roadmap is subject to change based on community feedback and market conditions.
             <br />

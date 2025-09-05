@@ -2,9 +2,20 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import crypto from "crypto";
+import { PublicKey } from '@solana/web3.js';
 
 function hashPin(pin: string): string {
   return crypto.createHash('sha256').update(pin).digest('hex');
+}
+
+function isValidSolanaAddress(address: string): boolean {
+  try {
+    // Check if it's a valid base58 Solana public key
+    new PublicKey(address);
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 // Helper function to check achievement criteria
@@ -70,19 +81,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced user registration with wallet verification
   app.post("/api/register", async (req, res) => {
     try {
-      const { walletAddress, username, pin } = req.body;
+      const { walletAddress, username, seedPhrase } = req.body;
       
-      if (!walletAddress || !username || !pin) {
+      if (!walletAddress || !username || !seedPhrase) {
         return res.status(400).json({ error: "Missing required fields" });
       }
       
-      if (pin.length !== 4 || !/^\d+$/.test(pin)) {
-        return res.status(400).json({ error: "PIN must be exactly 4 digits" });
+      // Validate seed phrase format (4 words)
+      const words = seedPhrase.trim().split(/\s+/);
+      if (words.length !== 4) {
+        return res.status(400).json({ error: "Seed phrase must be exactly 4 words" });
       }
 
       // Enhanced validation for Solana wallet address
-      if (typeof walletAddress !== 'string' || walletAddress.length < 32) {
-        return res.status(400).json({ error: "Invalid Solana wallet address" });
+      if (!isValidSolanaAddress(walletAddress)) {
+        return res.status(400).json({ error: "Invalid Solana wallet address. Please provide a valid SOL wallet." });
       }
       
       // Check if wallet address already exists (prevent duplicates)
@@ -97,12 +110,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ error: "Username already taken" });
       }
       
-      const hashedPin = hashPin(pin);
+      const hashedSeedPhrase = hashPin(seedPhrase.toLowerCase().trim());
       
       const user = await storage.createUser({
         walletAddress,
         username,
-        pin: hashedPin
+        pin: hashedSeedPhrase
       });
       
       // Award first achievement
@@ -128,10 +141,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced user login
   app.post("/api/login", async (req, res) => {
     try {
-      const { walletAddress, pin } = req.body;
+      const { walletAddress, seedPhrase } = req.body;
       
-      if (!walletAddress || !pin) {
-        return res.status(400).json({ error: "Missing wallet address or PIN" });
+      if (!walletAddress || !seedPhrase) {
+        return res.status(400).json({ error: "Missing wallet address or seed phrase" });
+      }
+      
+      if (!isValidSolanaAddress(walletAddress)) {
+        return res.status(400).json({ error: "Invalid Solana wallet address" });
       }
       
       const user = await storage.getUserByWallet(walletAddress);
@@ -139,8 +156,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
-      const hashedPin = hashPin(pin);
-      if (user.pin !== hashedPin) {
+      const hashedSeedPhrase = hashPin(seedPhrase.toLowerCase().trim());
+      if (user.pin !== hashedSeedPhrase) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
       

@@ -4,6 +4,7 @@ import { MenuScene } from '../scenes/MenuScene';
 import { GameScene } from '../scenes/GameScene';
 import { GameOverScene } from '../scenes/GameOverScene';
 import { GameUI } from './GameUI';
+import { BackgroundMusic } from './BackgroundMusic';
 import { useGameState } from '../lib/stores/useGameState';
 
 export const Game: React.FC = () => {
@@ -68,6 +69,7 @@ export const Game: React.FC = () => {
         <div className="relative w-full h-full">
             <div ref={containerRef} className="w-full h-full" />
             {gameInstance && <GameUI game={gameInstance} />}
+            <BackgroundMusic isPlaying={currentScene === 'game'} />
         </div>
     );
 };

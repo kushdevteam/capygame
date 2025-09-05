@@ -9,37 +9,48 @@ export const Whitepaper: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto px-6 py-8 max-w-4xl">
+    <div className="min-h-screen relative">
+      {/* Game Background */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ 
+          backgroundImage: `url('/images/AAA_capybara_wetland_background_ab88ce49.png')`,
+          filter: 'brightness(0.6) contrast(1.1)'
+        }}
+      />
+      {/* Atmospheric overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40" />
+      
+      <div className="relative z-10 container mx-auto px-6 py-8 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
           <Button 
             onClick={handleBack} 
             variant="outline" 
-            className="mb-4 text-white border-white/20 hover:bg-white/10"
+            className="mb-4 text-amber-100 border-amber-400/30 hover:bg-amber-500/20 backdrop-blur-sm"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Save the Capybara
-            <span className="text-cyan-400"> Whitepaper</span>
+            <span className="text-amber-300"> Whitepaper</span>
           </h1>
-          <p className="text-xl text-blue-200">
+          <p className="text-xl text-amber-100">
             The Future of Play-to-Earn Gaming on Solana
           </p>
         </div>
 
         <div className="space-y-8">
           {/* Executive Summary */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="bg-amber-900/20 backdrop-blur-md border-amber-500/30 hover:bg-amber-900/30 transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <Target className="h-6 w-6 text-cyan-400" />
+                <Target className="h-6 w-6 text-amber-400" />
                 Executive Summary
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-blue-100 space-y-4">
+            <CardContent className="text-amber-50 space-y-4">
               <p>
                 Save the Capybara is a revolutionary play-to-earn tower defense game built on the Solana blockchain. 
                 Players protect adorable capybaras from swarms of bees by drawing strategic barriers, earning rewards 
@@ -53,14 +64,14 @@ export const Whitepaper: React.FC = () => {
           </Card>
 
           {/* Game Mechanics */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="bg-amber-900/20 backdrop-blur-md border-amber-500/30 hover:bg-amber-900/30 transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <Gamepad2 className="h-6 w-6 text-green-400" />
+                <Gamepad2 className="h-6 w-6 text-emerald-400" />
                 Game Mechanics
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-blue-100 space-y-4">
+            <CardContent className="text-amber-50 space-y-4">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-2">Drawing Phase (4.5 seconds)</h3>
                 <p>Players use their magical ink to draw protective barriers around the capybara. Strategic placement and efficient ink usage are key to success.</p>
@@ -77,14 +88,14 @@ export const Whitepaper: React.FC = () => {
           </Card>
 
           {/* Tokenomics */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="bg-amber-900/20 backdrop-blur-md border-amber-500/30 hover:bg-amber-900/30 transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <Coins className="h-6 w-6 text-yellow-400" />
+                <Coins className="h-6 w-6 text-amber-400" />
                 Tokenomics ($CAPY)
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-blue-100 space-y-4">
+            <CardContent className="text-amber-50 space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-2">Token Distribution</h3>
@@ -111,14 +122,14 @@ export const Whitepaper: React.FC = () => {
           </Card>
 
           {/* Technology */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="bg-amber-900/20 backdrop-blur-md border-amber-500/30 hover:bg-amber-900/30 transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <Zap className="h-6 w-6 text-purple-400" />
+                <Zap className="h-6 w-6 text-yellow-400" />
                 Technology Stack
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-blue-100 space-y-4">
+            <CardContent className="text-amber-50 space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-2">Blockchain</h3>
@@ -141,14 +152,14 @@ export const Whitepaper: React.FC = () => {
           </Card>
 
           {/* Community */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="bg-amber-900/20 backdrop-blur-md border-amber-500/30 hover:bg-amber-900/30 transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <Users className="h-6 w-6 text-pink-400" />
+                <Users className="h-6 w-6 text-green-400" />
                 Community & Governance
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-blue-100 space-y-4">
+            <CardContent className="text-amber-50 space-y-4">
               <p>
                 Our community is at the heart of Save the Capybara. Token holders will have voting rights 
                 on key decisions including new features, tournament formats, and reward distributions.
@@ -167,14 +178,14 @@ export const Whitepaper: React.FC = () => {
           </Card>
 
           {/* Security */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <Card className="bg-amber-900/20 backdrop-blur-md border-amber-500/30 hover:bg-amber-900/30 transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <Shield className="h-6 w-6 text-red-400" />
+                <Shield className="h-6 w-6 text-orange-400" />
                 Security & Fair Play
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-blue-100 space-y-4">
+            <CardContent className="text-amber-50 space-y-4">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-2">Anti-Cheat Measures</h3>
                 <ul className="space-y-1">
@@ -195,15 +206,15 @@ export const Whitepaper: React.FC = () => {
           </Card>
 
           {/* Conclusion */}
-          <Card className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 backdrop-blur-md border-cyan-400/30">
+          <Card className="bg-gradient-to-r from-amber-500/20 to-emerald-500/20 backdrop-blur-md border-amber-400/30">
             <CardContent className="p-8 text-center">
               <h2 className="text-2xl font-bold text-white mb-4">Join the Capybara Revolution</h2>
-              <p className="text-blue-100 mb-6">
+              <p className="text-amber-50 mb-6">
                 Save the Capybara represents the next evolution in play-to-earn gaming. With our unique 
                 blend of skill-based gameplay, fair tokenomics, and community-driven development, 
                 we're building more than just a game – we're creating a sustainable gaming economy.
               </p>
-              <Button className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold px-8 py-3">
+              <Button className="bg-gradient-to-r from-amber-500 to-emerald-600 hover:from-amber-600 hover:to-emerald-700 text-white font-bold px-8 py-3">
                 Start Playing Today
               </Button>
             </CardContent>

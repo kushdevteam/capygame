@@ -21,6 +21,9 @@ export const Game: React.FC = () => {
             height: window.innerHeight,
             parent: containerRef.current,
             backgroundColor: '#87CEEB', // Sky blue background
+            render: {
+                premultipliedAlpha: true // Better alpha blending
+            },
             physics: {
                 default: 'arcade',
                 arcade: {

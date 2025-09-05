@@ -16,44 +16,16 @@ export class GameOverScene extends Phaser.Scene {
         
         // Update game state
         useGameState.getState().setScene('gameover');
+        useGameState.getState().setCapybaraAlive(data.won);
         
         this.won = data.won;
         const gameState = useGameState.getState();
         this.currentLevel = gameState.level;
         this.score = gameState.score;
 
-        // Clean background based on win/loss
-        const bgColor = this.won ? 0xf0f9ff : 0xfef2f2;
-        this.add.rectangle(width / 2, height / 2, width, height, bgColor);
-
-        // Simple title
-        const titleText = this.won ? 'Level Complete!' : 'Game Over';
-        const titleColor = this.won ? '#059669' : '#dc2626';
-        
-        this.add.text(width / 2, height / 3, titleText, {
-            fontSize: '42px',
-            color: titleColor,
-            fontStyle: 'bold',
-            fontFamily: 'Arial, sans-serif'
-        }).setOrigin(0.5);
-
-        // Score display
-        this.add.text(width / 2, height / 2 - 30, `Score: ${this.score.toLocaleString()}`, {
-            fontSize: '28px',
-            color: '#374151',
-            fontStyle: 'bold',
-            fontFamily: 'Arial, sans-serif'
-        }).setOrigin(0.5);
-
-        // Level display
-        this.add.text(width / 2, height / 2 + 10, `Level: ${this.currentLevel}`, {
-            fontSize: '20px',
-            color: '#6b7280',
-            fontFamily: 'Arial, sans-serif'
-        }).setOrigin(0.5);
-
-        // Action buttons
-        this.createButtons();
+        // Use the same beautiful background as the game
+        const background = this.add.image(width / 2, height / 2, 'gameBackground')
+            .setDisplaySize(width, height);
 
         // Handle resize
         this.scale.on('resize', this.resize, this);

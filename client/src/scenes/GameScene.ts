@@ -13,7 +13,7 @@ interface Bee {
 }
 
 export class GameScene extends Phaser.Scene {
-    private capybara!: Phaser.GameObjects.Rectangle;
+    private capybara!: Phaser.GameObjects.Graphics;
     private bees: Bee[] = [];
     private barriers: Phaser.GameObjects.Graphics[] = [];
     private currentBarrier: Phaser.GameObjects.Graphics | null = null;
@@ -25,6 +25,9 @@ export class GameScene extends Phaser.Scene {
     
     private currentLevel = 1;
     private isGameActive = false;
+    private skyBackground!: Phaser.GameObjects.TileSprite;
+    private grassBackground!: Phaser.GameObjects.TileSprite;
+    private scaleListener?: () => void;
 
     constructor() {
         super({ key: 'GameScene' });
@@ -46,8 +49,9 @@ export class GameScene extends Phaser.Scene {
             return;
         }
 
-        // Background
-        this.add.rectangle(width / 2, height / 2, width, height, 0x87CEEB);
+        // Beautiful seamless game background
+        this.skyBackground = this.add.image(width / 2, height / 2, 'gameBackground')
+            .setDisplaySize(width, height);
 
         // Create capybara
         this.createCapybara(levelConfig.capybaraPosition.x, levelConfig.capybaraPosition.y);
@@ -65,41 +69,35 @@ export class GameScene extends Phaser.Scene {
         this.startGameTimer(levelConfig);
         
         // Handle resize
-        this.scale.on('resize', this.resize, this);
+        this.scaleListener = (gameSize: Phaser.Structs.Size) => this.resize(gameSize);
+        this.scale.on('resize', this.scaleListener);
         
         this.isGameActive = true;
     }
 
     private createCapybara(x: number, y: number) {
-        // Create capybara body (brown rounded rectangle)
-        this.capybara = this.add.graphics();
-        this.capybara.fillStyle(0x8B4513); // Brown color
-        this.capybara.fillRoundedRect(x - 20, y - 15, 40, 30, 8);
+        // Create balanced capybara sprite - good detail but appropriately sized
+        this.capybara = this.add.image(x, y, 'capybaraSprite')
+            .setScale(0.15) // Good size for gameplay while maintaining visual appeal
+            .setDepth(10) as any;
         
-        // Add ears
-        this.capybara.fillStyle(0x654321); // Darker brown
-        this.capybara.fillEllipse(x - 12, y - 18, 8, 10);
-        this.capybara.fillEllipse(x + 12, y - 18, 8, 10);
+        // Add subtle glow effect
+        const glow = this.add.circle(x, y, 25, 0xffeb3b, 0.2)
+            .setDepth(9);
         
-        // Add eyes
-        this.capybara.fillStyle(0x000000); // Black
-        this.capybara.fillCircle(x - 8, y - 8, 3);
-        this.capybara.fillCircle(x + 8, y - 8, 3);
+        // Gentle floating animation
+        this.tweens.add({
+            targets: this.capybara,
+            y: y - 5,
+            duration: 2000,
+            ease: 'Sine.easeInOut',
+            yoyo: true,
+            repeat: -1
+        });
         
-        // Add nose
-        this.capybara.fillStyle(0x000000);
-        this.capybara.fillEllipse(x, y - 2, 4, 2);
-        
-        // Add a cute smile
-        this.capybara.lineStyle(2, 0x000000);
-        this.capybara.strokePath();
-        this.capybara.beginPath();
-        this.capybara.arc(x, y + 2, 6, 0, Math.PI, false);
-        this.capybara.strokePath();
-        
-        // Store position for collision detection
-        this.capybara.x = x;
-        this.capybara.y = y;
+        // Store reference for collision detection
+        (this.capybara as any).originalX = x;
+        (this.capybara as any).originalY = y;
     }
 
     private setupDrawingInput() {
@@ -112,7 +110,8 @@ export class GameScene extends Phaser.Scene {
         if (!this.isDrawingPhase || this.currentInk <= 0) return;
         
         this.currentBarrier = this.add.graphics();
-        this.currentBarrier.lineStyle(GAME_CONFIG.BARRIER_THICKNESS, GAME_CONFIG.BARRIER_COLOR);
+        this.currentBarrier.lineStyle(6, 0x4ade80, 0.9); // Thicker, more visible green barrier
+        this.currentBarrier.setDepth(5); // Ensure barriers are visible
         this.barriers.push(this.currentBarrier);
         
         this.lastDrawPoint = { x: pointer.x, y: pointer.y };
@@ -187,32 +186,37 @@ export class GameScene extends Phaser.Scene {
     }
 
     private createBee(x: number, y: number, speed: number) {
-        // Create bee as graphics object for better visual
-        const beeGraphics = this.add.graphics();
+        // Create balanced bee sprite - appealing but properly sized
+        const beeSprite = this.add.image(x, y, 'beeSprite')
+            .setScale(0.12) // Good size for gameplay while maintaining charm
+            .setDepth(8);
         
-        // Bee body (yellow with black stripes)
-        beeGraphics.fillStyle(0xFFD700); // Gold/Yellow
-        beeGraphics.fillEllipse(0, 0, 12, 8);
+        // Add wing flutter animation
+        this.tweens.add({
+            targets: beeSprite,
+            scaleX: 0.11,
+            scaleY: 0.13,
+            duration: 150,
+            ease: 'Sine.easeInOut',
+            yoyo: true,
+            repeat: -1
+        });
         
-        // Black stripes
-        beeGraphics.fillStyle(0x000000);
-        beeGraphics.fillRect(-4, -2, 1, 4);
-        beeGraphics.fillRect(0, -2, 1, 4);
-        beeGraphics.fillRect(4, -2, 1, 4);
-        
-        // Wings (semi-transparent white)
-        beeGraphics.fillStyle(0xFFFFFF, 0.7);
-        beeGraphics.fillEllipse(-6, -4, 6, 3);
-        beeGraphics.fillEllipse(6, -4, 6, 3);
-        
-        // Position the bee
-        beeGraphics.setPosition(x, y);
+        // Add subtle buzzing movement
+        this.tweens.add({
+            targets: beeSprite,
+            angle: { from: -3, to: 3 },
+            duration: 400,
+            ease: 'Sine.easeInOut',
+            yoyo: true,
+            repeat: -1
+        });
         
         const bee: Bee = {
-            sprite: beeGraphics as any,
+            sprite: beeSprite as any,
             speed: speed,
-            targetX: this.capybara.x,
-            targetY: this.capybara.y,
+            targetX: (this.capybara as any).originalX || this.capybara.x,
+            targetY: (this.capybara as any).originalY || this.capybara.y,
             active: true
         };
         
@@ -254,7 +258,7 @@ export class GameScene extends Phaser.Scene {
                 this.capybara.x, this.capybara.y
             );
             
-            if (distanceToCapybara < GAME_CONFIG.BEE_DETECTION_RADIUS) {
+            if (distanceToCapybara < 20) { // Much smaller detection radius
                 this.endGame(false); // Capybara was caught!
             }
         });
@@ -268,7 +272,7 @@ export class GameScene extends Phaser.Scene {
                 if (barrier && barrier.displayList) {
                     // Use a simple radius check around drawn areas
                     const checkRadius = 15;
-                    const bounds = barrier.getBounds();
+                    const bounds = (barrier as any).getBounds();
                     
                     if (bounds.width > 0 && bounds.height > 0) {
                         // Check if point is within expanded bounds
@@ -347,13 +351,27 @@ export class GameScene extends Phaser.Scene {
     }
 
     private resize(gameSize: Phaser.Structs.Size) {
-        // Handle responsive resizing if needed
+        // Handle responsive resizing
         const { width, height } = gameSize;
+        
+        // Resize background
+        if (this.skyBackground) {
+            this.skyBackground.setDisplaySize(width, height);
+            this.skyBackground.setPosition(width / 2, height / 2);
+        }
         
         // Ensure game elements stay within bounds
         if (this.capybara) {
             this.capybara.x = Math.min(Math.max(this.capybara.x, 50), width - 50);
             this.capybara.y = Math.min(Math.max(this.capybara.y, 50), height - 50);
         }
+    }
+    
+    shutdown() {
+        // Clean up event listeners
+        if (this.scaleListener) {
+            this.scale.off('resize', this.scaleListener);
+        }
+        super.shutdown();
     }
 }

@@ -5,6 +5,9 @@ export class MenuScene extends Phaser.Scene {
     private startButton!: Phaser.GameObjects.Graphics;
     private titleText!: Phaser.GameObjects.Text;
     private instructionText!: Phaser.GameObjects.Text;
+    private skyBackground!: Phaser.GameObjects.TileSprite;
+    private grassBackground!: Phaser.GameObjects.TileSprite;
+    private buttonText!: Phaser.GameObjects.Text;
 
     constructor() {
         super({ key: 'MenuScene' });
@@ -16,8 +19,14 @@ export class MenuScene extends Phaser.Scene {
         // Update game state
         useGameState.getState().setScene('menu');
 
-        // Clean background
-        this.add.rectangle(width / 2, height / 2, width, height, 0xf8fafc);
+        // Layered background with textures
+        this.skyBackground = this.add.tileSprite(0, 0, width, height, 'sky')
+            .setOrigin(0, 0)
+            .setTint(0xe0f2fe); // Light blue tint
+        
+        this.grassBackground = this.add.tileSprite(0, height - 100, width, 100, 'grass')
+            .setOrigin(0, 0)
+            .setTint(0x86efac); // Light green tint
 
         // Simple title
         this.titleText = this.add.text(width / 2, height / 3, 'Save the Capybara', {
@@ -39,32 +48,10 @@ export class MenuScene extends Phaser.Scene {
             fontFamily: 'Arial, sans-serif'
         }).setOrigin(0.5);
 
-        // Simple button
-        this.startButton = this.add.graphics();
-        this.startButton.fillStyle(0x2563eb, 1);
-        this.startButton.fillRoundedRect(width / 2 - 100, height * 0.75 - 25, 200, 50, 8);
-        this.startButton.setInteractive(
-            new Phaser.Geom.Rectangle(width / 2 - 100, height * 0.75 - 25, 200, 50),
-            Phaser.Geom.Rectangle.Contains
-        );
-        this.startButton.on('pointerdown', this.startGame, this);
-        this.startButton.on('pointerover', () => {
-            this.startButton.clear();
-            this.startButton.fillStyle(0x1d4ed8, 1);
-            this.startButton.fillRoundedRect(width / 2 - 100, height * 0.75 - 25, 200, 50, 8);
-        });
-        this.startButton.on('pointerout', () => {
-            this.startButton.clear();
-            this.startButton.fillStyle(0x2563eb, 1);
-            this.startButton.fillRoundedRect(width / 2 - 100, height * 0.75 - 25, 200, 50, 8);
-        });
-
-        this.add.text(width / 2, height * 0.75, 'Start Game', {
-            fontSize: '20px',
-            color: '#ffffff',
-            fontStyle: 'bold',
-            fontFamily: 'Arial, sans-serif'
-        }).setOrigin(0.5);
+        // Hidden button (replaced by React overlay)
+        // this.startButton = this.add.graphics();
+        // this.buttonText = this.add.text(...);
+        // Button functionality moved to React MenuOverlay component
 
         // Handle resize
         this.scale.on('resize', this.resize, this);
@@ -82,6 +69,16 @@ export class MenuScene extends Phaser.Scene {
     private resize(gameSize: Phaser.Structs.Size) {
         const { width, height } = gameSize;
         
+        // Resize backgrounds
+        if (this.skyBackground) {
+            this.skyBackground.setSize(width, height);
+        }
+        
+        if (this.grassBackground) {
+            this.grassBackground.setSize(width, 100);
+            this.grassBackground.setPosition(0, height - 100);
+        }
+        
         // Reposition elements
         if (this.titleText) {
             this.titleText.setPosition(width / 2, height / 3);
@@ -91,12 +88,20 @@ export class MenuScene extends Phaser.Scene {
             this.instructionText.setPosition(width / 2, height / 2);
         }
         
-        if (this.startButton) {
-            this.startButton.setPosition(width / 2, height * 0.75);
-        }
+        // Button removed - using React overlay instead
+        // No button resize logic needed
     }
 
     preload() {
+        // Load textures
+        this.load.image('sky', '/textures/sky.png');
+        this.load.image('grass', '/textures/grass.png');
+        
+        // Load new game assets
+        this.load.image('gameBackground', '/images/Seamless_wetland_game_background_971a64de.png');
+        this.load.image('capybaraSprite', '/images/Balanced_capybara_game_sprite_9850c722.png');
+        this.load.image('beeSprite', '/images/Balanced_bee_game_sprite_fb9136c1.png');
+        
         // Load sounds
         this.load.audio('hit', '/sounds/hit.mp3');
         this.load.audio('success', '/sounds/success.mp3');

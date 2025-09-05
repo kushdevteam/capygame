@@ -1,0 +1,90 @@
+import { create } from 'zustand';
+
+interface User {
+    walletAddress: string;
+    username: string;
+    pin: string;
+}
+
+interface AuthState {
+    user: User | null;
+    isLoggedIn: boolean;
+    login: (walletAddress: string, pin: string) => Promise<boolean>;
+    register: (walletAddress: string, username: string, pin: string) => Promise<boolean>;
+    logout: () => void;
+    setUser: (user: User | null) => void;
+}
+
+export const useAuthStore = create<AuthState>((set, get) => ({
+    user: null,
+    isLoggedIn: false,
+    
+    login: async (walletAddress: string, pin: string) => {
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ walletAddress, pin })
+            });
+            
+            if (response.ok) {
+                const userData = await response.json();
+                set({ user: userData.user, isLoggedIn: true });
+                localStorage.setItem('user_session', JSON.stringify(userData.user));
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Login error:', error);
+            return false;
+        }
+    },
+    
+    register: async (walletAddress: string, username: string, pin: string) => {
+        try {
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ walletAddress, username, pin })
+            });
+            
+            if (response.ok) {
+                const userData = await response.json();
+                set({ user: userData.user, isLoggedIn: true });
+                localStorage.setItem('user_session', JSON.stringify(userData.user));
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Registration error:', error);
+            return false;
+        }
+    },
+    
+    logout: () => {
+        set({ user: null, isLoggedIn: false });
+        localStorage.removeItem('user_session');
+    },
+    
+    setUser: (user: User | null) => {
+        set({ user, isLoggedIn: !!user });
+        if (user) {
+            localStorage.setItem('user_session', JSON.stringify(user));
+        } else {
+            localStorage.removeItem('user_session');
+        }
+    }
+}));
+
+// Initialize from localStorage on app start
+if (typeof window !== 'undefined') {
+    const savedUser = localStorage.getItem('user_session');
+    if (savedUser) {
+        try {
+            const user = JSON.parse(savedUser);
+            useAuthStore.getState().setUser(user);
+        } catch (error) {
+            localStorage.removeItem('user_session');
+        }
+    }
+}

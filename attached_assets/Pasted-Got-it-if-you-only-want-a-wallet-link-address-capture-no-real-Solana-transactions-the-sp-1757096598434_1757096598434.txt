@@ -1,0 +1,114 @@
+Got it ✅ — if you only want a **wallet link (address capture)**, no real Solana transactions, the spec can be much simpler. You don’t need token transfers, Anchor, or a backend program. Instead, you just:
+
+* Let the player **connect their Solana wallet** (Phantom/Solflare/Backpack).
+* Read their **public key**.
+* Store/display it with their game profile and scores.
+* Later, you’ll use those addresses to manually **airdrop rewards**.
+
+Here’s a trimmed-down version of the prompt you can give your AI coder:
+
+---
+
+# Build “Save the Capybara” (web) + simple Solana wallet link
+
+## Goal
+
+Recreate the **Save the Capybara** browser game:
+
+* Player draws a protective barrier to shield a capybara from bees for 5 seconds.
+* If capybara survives → win level; otherwise → lose.
+* Game runs in browser, mobile-friendly.
+* Add **wallet connect button** so users can link their Solana wallet; no blockchain writes, no purchases.
+
+---
+
+## Tech stack
+
+* **Game engine**: Phaser 3 (TypeScript)
+* **UI**: React + TailwindCSS
+* **Wallets**: `@solana/wallet-adapter` (Phantom, Solflare, Backpack)
+* **Storage**: localStorage for session + wallet address
+* **Backend (optional)**: simple API for leaderboard (store pubkey + score); can also just be local if leaderboard not needed
+
+---
+
+## Features
+
+### Core Gameplay
+
+* Drawing phase: drag to draw a barrier for up to \~2.5s (limited ink).
+* Simulation phase: bees fly toward capybara; survive 5s = win.
+* 12 handcrafted levels via JSON config.
+* Simple restart / next buttons.
+
+### Wallet Link
+
+* Add a **“Connect Wallet”** button.
+* On connect: capture **public key**.
+* Display: “Connected: `shortened_pubkey`”.
+* Store in localStorage so user stays linked across sessions.
+* Use this address for score submissions (off-chain).
+
+### Leaderboard (optional)
+
+* Store `{ pubkey, score, level }` in your backend DB.
+* Show top 100 scores + player’s rank.
+* No signature verification needed — just trust the wallet link (since rewards are manual).
+
+---
+
+## Implementation snippets
+
+**Wallet connect button**
+
+```tsx
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+
+function WalletConnect() {
+  return (
+    <div className="p-2">
+      <WalletMultiButton className="rounded-xl bg-purple-500 text-white px-4 py-2" />
+    </div>
+  );
+}
+```
+
+**Access wallet address**
+
+```ts
+import { useWallet } from '@solana/wallet-adapter-react';
+
+const { publicKey } = useWallet();
+
+if (publicKey) {
+  const address = publicKey.toBase58();
+  localStorage.setItem('wallet', address);
+  console.log("Connected wallet:", address);
+}
+```
+
+**Score submit (optional)**
+
+```ts
+async function submitScore(level: number, score: number) {
+  const pubkey = localStorage.getItem('wallet') ?? "guest";
+  await fetch('/api/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pubkey, level, score }),
+  });
+}
+```
+
+---
+
+## Deliverables
+
+1. Browser game playable on desktop/mobile.
+2. Connect wallet button → shows pubkey.
+3. Wallet address tied to player’s scores (for later manual airdrops).
+4. (Optional) leaderboard using pubkey display.
+
+---
+
+👉 Would you like me to **rewrite the full long spec** I gave earlier into this “wallet-link-only” version, so you can just paste it into your AI coder? Or do you prefer keeping only this trimmed brief?

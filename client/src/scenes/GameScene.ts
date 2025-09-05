@@ -107,19 +107,23 @@ export class GameScene extends Phaser.Scene {
     }
 
     private startDrawing(pointer: Phaser.Input.Pointer) {
-        if (!this.isDrawingPhase || this.currentInk <= 0) return;
+        if (!this.isDrawingPhase) return;
         
         this.currentBarrier = this.add.graphics();
-        this.currentBarrier.lineStyle(6, 0x4ade80, 0.9); // Thicker, more visible green barrier
+        this.currentBarrier.lineStyle(8, 0x4ade80, 1.0); // Even thicker, fully opaque green barrier
         this.currentBarrier.setDepth(5); // Ensure barriers are visible
         this.barriers.push(this.currentBarrier);
+        
+        // Add a subtle glow effect to make barriers more visible
+        this.currentBarrier.lineStyle(12, 0x4ade80, 0.3); // Outer glow layer
         
         this.lastDrawPoint = { x: pointer.x, y: pointer.y };
         useGameState.getState().setIsDrawing(true);
     }
 
     private continueDrawing(pointer: Phaser.Input.Pointer) {
-        if (!this.isDrawingPhase || !this.currentBarrier || !this.lastDrawPoint || this.currentInk <= 0) return;
+        // Allow drawing even with low ink, just consume what's available
+        if (!this.isDrawingPhase || !this.currentBarrier || !this.lastDrawPoint) return;
         
         const distance = Phaser.Math.Distance.Between(
             this.lastDrawPoint.x, this.lastDrawPoint.y,
@@ -128,23 +132,35 @@ export class GameScene extends Phaser.Scene {
         
         if (distance < GAME_CONFIG.MIN_DRAW_DISTANCE) return;
         
-        // Draw line segment
+        // Draw line segment with glow effect
+        // Outer glow
+        this.currentBarrier.lineStyle(12, 0x4ade80, 0.3);
         this.currentBarrier.lineBetween(
             this.lastDrawPoint.x, this.lastDrawPoint.y,
             pointer.x, pointer.y
         );
         
-        // Consume ink
-        this.currentInk -= distance * GAME_CONFIG.INK_CONSUMPTION_RATE;
-        this.currentInk = Math.max(0, this.currentInk);
-        useGameState.getState().setInk(this.currentInk);
+        // Main line
+        this.currentBarrier.lineStyle(8, 0x4ade80, 1.0);
+        this.currentBarrier.lineBetween(
+            this.lastDrawPoint.x, this.lastDrawPoint.y,
+            pointer.x, pointer.y
+        );
+        
+        // Debug: Log barrier creation
+        console.log("Drawing barrier from", this.lastDrawPoint.x, this.lastDrawPoint.y, "to", pointer.x, pointer.y);
+        
+        // Consume ink only if available
+        if (this.currentInk > 0) {
+            const inkToConsume = Math.min(distance * GAME_CONFIG.INK_CONSUMPTION_RATE, this.currentInk);
+            this.currentInk -= inkToConsume;
+            this.currentInk = Math.max(0, this.currentInk);
+            useGameState.getState().setInk(this.currentInk);
+        }
         
         this.lastDrawPoint = { x: pointer.x, y: pointer.y };
         
-        // Stop drawing if out of ink
-        if (this.currentInk <= 0) {
-            this.stopDrawing();
-        }
+        // Continue drawing even with 0 ink, but don't consume more ink
     }
 
     private stopDrawing() {
@@ -165,6 +181,7 @@ export class GameScene extends Phaser.Scene {
                 // Switch to survival phase
                 if (timeRemaining <= GAME_CONFIG.SURVIVAL_TIME && this.isDrawingPhase) {
                     this.isDrawingPhase = false;
+                    console.log("Switching to survival phase, spawning bees. Total barriers:", this.barriers.length);
                     this.spawnBees(levelConfig);
                 }
                 
@@ -247,9 +264,17 @@ export class GameScene extends Phaser.Scene {
                 bee.sprite.x = newX;
                 bee.sprite.y = newY;
             } else {
-                // Bounce off barrier
-                bee.sprite.x -= deltaX;
-                bee.sprite.y -= deltaY;
+                // Bounce off barrier - try alternative path
+                const bounceAngle = angle + Math.PI/3; // 60 degree deflection
+                const bounceX = bee.sprite.x + Math.cos(bounceAngle) * bee.speed * 0.008;
+                const bounceY = bee.sprite.y + Math.sin(bounceAngle) * bee.speed * 0.008;
+                
+                // Check if bounce path is clear
+                if (!this.checkBarrierCollision(bounceX, bounceY)) {
+                    bee.sprite.x = bounceX;
+                    bee.sprite.y = bounceY;
+                }
+                // If bounce path is also blocked, bee stays in place this frame
             }
             
             // Check if bee reached capybara
@@ -265,27 +290,33 @@ export class GameScene extends Phaser.Scene {
     }
 
     private checkBarrierCollision(x: number, y: number): boolean {
-        // Simple collision detection with barriers
+        // More robust collision detection with drawn barriers
+        const checkRadius = 12; // Detection radius around bee position
+        
         for (const barrier of this.barriers) {
             try {
-                // Check if the graphics object has any drawn content
                 if (barrier && barrier.displayList) {
-                    // Use a simple radius check around drawn areas
-                    const checkRadius = 15;
                     const bounds = (barrier as any).getBounds();
                     
-                    if (bounds.width > 0 && bounds.height > 0) {
-                        // Check if point is within expanded bounds
-                        if (x >= bounds.x - checkRadius && 
-                            x <= bounds.x + bounds.width + checkRadius &&
-                            y >= bounds.y - checkRadius && 
-                            y <= bounds.y + bounds.height + checkRadius) {
+                    // Check if bounds exist and are valid
+                    if (bounds && bounds.width > 0 && bounds.height > 0) {
+                        // Expand the collision area generously for better gameplay
+                        const expandedLeft = bounds.x - checkRadius;
+                        const expandedRight = bounds.x + bounds.width + checkRadius;
+                        const expandedTop = bounds.y - checkRadius;
+                        const expandedBottom = bounds.y + bounds.height + checkRadius;
+                        
+                        // Check if bee position overlaps with expanded barrier bounds
+                        if (x >= expandedLeft && x <= expandedRight && 
+                            y >= expandedTop && y <= expandedBottom) {
+                            console.log("Barrier collision detected at", x, y);
                             return true;
                         }
                     }
                 }
             } catch (error) {
-                // If getBounds fails, skip this barrier
+                // If getBounds fails, fallback to basic distance check
+                console.log("Barrier collision check failed, using fallback");
                 continue;
             }
         }

@@ -29,6 +29,9 @@ export class GameOverScene extends Phaser.Scene {
 
         // Handle resize
         this.scale.on('resize', this.resize, this);
+        
+        // Create buttons for fallback (though React overlay is primary)
+        this.createButtons();
     }
 
     private createButtons() {
@@ -120,6 +123,9 @@ export class GameOverScene extends Phaser.Scene {
     private restartLevel() {
         // Reset score for retry
         useGameState.getState().setScore(Math.max(0, this.score - 50)); // Small penalty for retry
+        
+        // Reset capybara alive state before restarting
+        useGameState.getState().setCapybaraAlive(true);
         
         this.scene.start('GameScene');
     }

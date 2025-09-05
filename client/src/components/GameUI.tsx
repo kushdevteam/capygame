@@ -32,6 +32,8 @@ export const GameUI: React.FC<GameUIProps> = ({ game }) => {
     const handleRetry = () => {
         const gameState = useGameState.getState();
         gameState.setScore(Math.max(0, gameState.score - 50)); // Small penalty
+        gameState.setCapybaraAlive(true); // Reset capybara state
+        gameState.setScene('game'); // Ensure scene state is properly set
         if (game && game.scene) {
             game.scene.start('GameScene');
         }

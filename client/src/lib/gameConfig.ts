@@ -1,13 +1,13 @@
 export const GAME_CONFIG = {
     // Drawing settings
-    DRAWING_TIME: 2.5, // seconds
+    DRAWING_TIME: 4.5, // seconds
     SURVIVAL_TIME: 5, // seconds
     INITIAL_INK: 100,
     
     // Drawing mechanics
     BRUSH_SIZE: 8,
-    INK_CONSUMPTION_RATE: 0.5, // ink consumed per pixel drawn
-    MIN_DRAW_DISTANCE: 5, // minimum distance between draw points
+    INK_CONSUMPTION_RATE: 0.1, // ink consumed per pixel drawn (reduced from 0.5)
+    MIN_DRAW_DISTANCE: 2, // minimum distance between draw points (reduced from 5)
     
     // Capybara settings
     CAPYBARA_SIZE: 40,

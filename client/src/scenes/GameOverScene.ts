@@ -110,12 +110,20 @@ export class GameOverScene extends Phaser.Scene {
 
     private nextLevel() {
         const gameState = useGameState.getState();
-        gameState.setLevel(this.currentLevel + 1);
+        const nextLevelNum = this.currentLevel + 1;
+        
+        // Update game state before transitioning
+        gameState.setLevel(nextLevelNum);
+        gameState.setCapybaraAlive(true);
+        gameState.setScene('game');
         
         // Play success sound
         if (this.sound.get('success')) {
             this.sound.play('success', { volume: 0.3 });
         }
+        
+        // Clean up before transitioning
+        this.scale.off('resize', this.resize, this);
         
         this.scene.start('GameScene');
     }

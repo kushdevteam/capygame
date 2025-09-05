@@ -99,8 +99,8 @@ export class MenuScene extends Phaser.Scene {
         
         // Load new game assets
         this.load.image('gameBackground', '/images/Seamless_wetland_game_background_971a64de.png');
-        this.load.image('capybaraSprite', '/images/Balanced_capybara_game_sprite_9850c722.png');
-        this.load.image('beeSprite', '/images/Balanced_bee_game_sprite_fb9136c1.png');
+        this.load.image('capybaraSprite', '/images/custom_capybara.png');
+        this.load.image('beeSprite', '/images/custom_bee.png');
         
         // Load sounds
         this.load.audio('hit', '/sounds/hit.mp3');

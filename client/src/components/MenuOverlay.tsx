@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 const backgroundImage = '/images/AAA_capybara_wetland_background_ab88ce49.png';
-const heroImage = '/images/AAA_capybara_hero_character_0a40b727.png';
+const heroImage = '/images/custom_capybara.png';
 const barrierImage = '/images/AAA_magical_barrier_UI_b6d0d11f.png';
 
 interface MenuOverlayProps {
@@ -117,7 +117,7 @@ export const MenuOverlay: React.FC<MenuOverlayProps> = ({ onStartGame }) => {
                         <img 
                             src={heroImage} 
                             alt="Capybara Hero" 
-                            className="w-48 h-48 object-contain drop-shadow-2xl relative z-10"
+                            className="w-32 h-32 object-contain drop-shadow-2xl relative z-10"
                         />
                         
                         {/* Floating crown effect */}
@@ -144,16 +144,24 @@ export const MenuOverlay: React.FC<MenuOverlayProps> = ({ onStartGame }) => {
                         transition={{ delay: 0.5, duration: 0.8 }}
                         className="mb-6"
                     >
-                        <GlowingText className="text-6xl md:text-8xl font-bold text-white mb-2 leading-tight font-serif">
+                        <GlowingText className="text-4xl md:text-5xl font-bold text-white mb-2 leading-tight font-serif" style={{
+                            textRendering: 'optimizeLegibility',
+                            WebkitFontSmoothing: 'antialiased',
+                            MozOsxFontSmoothing: 'grayscale'
+                        }}>
                             SAVE THE
                         </GlowingText>
-                        <GlowingText className="text-7xl md:text-9xl font-bold bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 bg-clip-text text-transparent leading-tight font-serif">
+                        <GlowingText className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 bg-clip-text text-transparent leading-tight font-serif" style={{
+                            textRendering: 'optimizeLegibility',
+                            WebkitFontSmoothing: 'antialiased',
+                            MozOsxFontSmoothing: 'grayscale'
+                        }}>
                             CAPYBARA
                         </GlowingText>
                         
                         {/* Subtitle */}
                         <motion.p 
-                            className="text-xl md:text-2xl text-amber-100 mt-4 font-light tracking-wide"
+                            className="text-lg md:text-xl text-amber-100 mt-4 font-light tracking-wide"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.8, duration: 0.6 }}
@@ -169,16 +177,16 @@ export const MenuOverlay: React.FC<MenuOverlayProps> = ({ onStartGame }) => {
                         transition={{ delay: 0.9, duration: 0.6 }}
                         className="mb-10 flex gap-8 text-center"
                     >
-                        <div className="backdrop-blur-md bg-blue-600/30 border-2 border-blue-400/50 rounded-2xl p-6 transform hover:scale-105 transition-transform">
-                            <div className="text-3xl mb-2">⚡</div>
-                            <div className="font-bold text-blue-200 text-lg">DRAW PHASE</div>
-                            <div className="text-blue-100 text-sm">2.5 Seconds</div>
+                        <div className="backdrop-blur-md bg-blue-600/30 border-2 border-blue-400/50 rounded-xl p-4 transform hover:scale-105 transition-transform">
+                            <div className="text-2xl mb-1">⚡</div>
+                            <div className="font-bold text-blue-200 text-sm">DRAW PHASE</div>
+                            <div className="text-blue-100 text-xs">2.5 Seconds</div>
                         </div>
                         
-                        <div className="backdrop-blur-md bg-red-600/30 border-2 border-red-400/50 rounded-2xl p-6 transform hover:scale-105 transition-transform">
-                            <div className="text-3xl mb-2">🛡️</div>
-                            <div className="font-bold text-red-200 text-lg">SURVIVE PHASE</div>
-                            <div className="text-red-100 text-sm">5 Seconds</div>
+                        <div className="backdrop-blur-md bg-red-600/30 border-2 border-red-400/50 rounded-xl p-4 transform hover:scale-105 transition-transform">
+                            <div className="text-2xl mb-1">🛡️</div>
+                            <div className="font-bold text-red-200 text-sm">SURVIVE PHASE</div>
+                            <div className="text-red-100 text-xs">5 Seconds</div>
                         </div>
                     </motion.div>
 
@@ -198,7 +206,7 @@ export const MenuOverlay: React.FC<MenuOverlayProps> = ({ onStartGame }) => {
                             onClick={onStartGame}
                             onMouseEnter={() => setIsHovered(true)}
                             onMouseLeave={() => setIsHovered(false)}
-                            className="relative group bg-gradient-to-r from-emerald-500 via-green-600 to-emerald-500 hover:from-emerald-400 hover:via-green-500 hover:to-emerald-400 text-white font-bold px-12 py-6 text-2xl rounded-2xl shadow-2xl hover:shadow-emerald-500/50 border-2 border-emerald-400 transition-all duration-300 transform hover:scale-110 active:scale-95 overflow-hidden"
+                            className="relative group bg-gradient-to-r from-emerald-500 via-green-600 to-emerald-500 hover:from-emerald-400 hover:via-green-500 hover:to-emerald-400 text-white font-bold px-10 py-4 text-xl rounded-2xl shadow-2xl hover:shadow-emerald-500/50 border-2 border-emerald-400 transition-all duration-300 transform hover:scale-110 active:scale-95 overflow-hidden"
                         >
                             {/* Button glow effect */}
                             <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-green-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl" />
@@ -237,7 +245,7 @@ export const MenuOverlay: React.FC<MenuOverlayProps> = ({ onStartGame }) => {
                 </motion.div>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 @keyframes pulse {
                     0%, 100% { opacity: 0.2; transform: scale(1); }
                     50% { opacity: 0.4; transform: scale(1.02); }

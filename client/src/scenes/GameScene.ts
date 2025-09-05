@@ -16,6 +16,7 @@ export class GameScene extends Phaser.Scene {
     private capybara!: Phaser.GameObjects.Graphics;
     private bees: Bee[] = [];
     private barriers: Phaser.GameObjects.Graphics[] = [];
+    private barrierPoints: Array<{x1: number, y1: number, x2: number, y2: number}> = [];
     private currentBarrier: Phaser.GameObjects.Graphics | null = null;
     
     private gameTimer!: Phaser.Time.TimerEvent;
@@ -25,7 +26,7 @@ export class GameScene extends Phaser.Scene {
     
     private currentLevel = 1;
     private isGameActive = false;
-    private skyBackground!: Phaser.GameObjects.TileSprite;
+    private skyBackground!: Phaser.GameObjects.Image;
     private grassBackground!: Phaser.GameObjects.TileSprite;
     private scaleListener?: () => void;
 
@@ -69,7 +70,7 @@ export class GameScene extends Phaser.Scene {
         this.startGameTimer(levelConfig);
         
         // Handle resize
-        this.scaleListener = (gameSize: Phaser.Structs.Size) => this.resize(gameSize);
+        this.scaleListener = () => this.resize();
         this.scale.on('resize', this.scaleListener);
         
         this.isGameActive = true;
@@ -132,6 +133,14 @@ export class GameScene extends Phaser.Scene {
         
         if (distance < GAME_CONFIG.MIN_DRAW_DISTANCE) return;
         
+        // Store barrier segment for collision detection
+        this.barrierPoints.push({
+            x1: this.lastDrawPoint.x,
+            y1: this.lastDrawPoint.y,
+            x2: pointer.x,
+            y2: pointer.y
+        });
+        
         // Draw line segment with glow effect
         // Outer glow
         this.currentBarrier.lineStyle(12, 0x4ade80, 0.3);
@@ -146,9 +155,6 @@ export class GameScene extends Phaser.Scene {
             this.lastDrawPoint.x, this.lastDrawPoint.y,
             pointer.x, pointer.y
         );
-        
-        // Debug: Log barrier creation
-        console.log("Drawing barrier from", this.lastDrawPoint.x, this.lastDrawPoint.y, "to", pointer.x, pointer.y);
         
         // Consume ink only if available
         if (this.currentInk > 0) {
@@ -290,37 +296,51 @@ export class GameScene extends Phaser.Scene {
     }
 
     private checkBarrierCollision(x: number, y: number): boolean {
-        // More robust collision detection with drawn barriers
-        const checkRadius = 12; // Detection radius around bee position
+        const checkRadius = 15; // Detection radius around bee position
         
-        for (const barrier of this.barriers) {
-            try {
-                if (barrier && barrier.displayList) {
-                    const bounds = (barrier as any).getBounds();
-                    
-                    // Check if bounds exist and are valid
-                    if (bounds && bounds.width > 0 && bounds.height > 0) {
-                        // Expand the collision area generously for better gameplay
-                        const expandedLeft = bounds.x - checkRadius;
-                        const expandedRight = bounds.x + bounds.width + checkRadius;
-                        const expandedTop = bounds.y - checkRadius;
-                        const expandedBottom = bounds.y + bounds.height + checkRadius;
-                        
-                        // Check if bee position overlaps with expanded barrier bounds
-                        if (x >= expandedLeft && x <= expandedRight && 
-                            y >= expandedTop && y <= expandedBottom) {
-                            console.log("Barrier collision detected at", x, y);
-                            return true;
-                        }
-                    }
-                }
-            } catch (error) {
-                // If getBounds fails, fallback to basic distance check
-                console.log("Barrier collision check failed, using fallback");
-                continue;
+        // Check against all drawn barrier line segments
+        for (const segment of this.barrierPoints) {
+            const distance = this.distanceToLineSegment(x, y, segment.x1, segment.y1, segment.x2, segment.y2);
+            
+            if (distance < checkRadius) {
+                return true;
             }
         }
         return false;
+    }
+    
+    private distanceToLineSegment(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
+        const A = px - x1;
+        const B = py - y1;
+        const C = x2 - x1;
+        const D = y2 - y1;
+        
+        const dot = A * C + B * D;
+        const lenSq = C * C + D * D;
+        
+        if (lenSq === 0) {
+            // Line segment is a point
+            return Math.sqrt(A * A + B * B);
+        }
+        
+        let param = dot / lenSq;
+        
+        let xx, yy;
+        
+        if (param < 0) {
+            xx = x1;
+            yy = y1;
+        } else if (param > 1) {
+            xx = x2;
+            yy = y2;
+        } else {
+            xx = x1 + param * C;
+            yy = y1 + param * D;
+        }
+        
+        const dx = px - xx;
+        const dy = py - yy;
+        return Math.sqrt(dx * dx + dy * dy);
     }
 
     private endGame(won: boolean) {
@@ -381,9 +401,9 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
-    private resize(gameSize: Phaser.Structs.Size) {
+    private resize() {
         // Handle responsive resizing
-        const { width, height } = gameSize;
+        const { width, height } = this.scale;
         
         // Resize background
         if (this.skyBackground) {

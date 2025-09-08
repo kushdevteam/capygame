@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type GameScene = 'menu' | 'game' | 'gameover';
+export type GameScene = 'menu' | 'game' | 'gameover' | 'towerdefense';
 
 interface GameState {
     currentScene: GameScene;
@@ -24,7 +24,7 @@ interface GameState {
 
 export const useGameState = create<GameState>((set) => ({
     currentScene: 'menu',
-    level: 1,
+    level: 0, // Start with tutorial
     score: 0,
     timeLeft: 7.5, // 2.5s drawing + 5s survival
     ink: 100,
@@ -40,7 +40,7 @@ export const useGameState = create<GameState>((set) => ({
     setCapybaraAlive: (alive) => set({ capybaraAlive: alive }),
     
     resetGame: () => set({
-        level: 1,
+        level: 0, // Reset to tutorial
         score: 0,
         timeLeft: 7.5,
         ink: 100,

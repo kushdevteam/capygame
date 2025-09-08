@@ -8,12 +8,31 @@ import { Button } from './ui/button';
 
 interface GameUIProps {
     game: Phaser.Game;
+    onModeSelect?: (mode: 'drawing' | 'tower-defense') => void;
 }
 
-export const GameUI: React.FC<GameUIProps> = ({ game }) => {
+export const GameUI: React.FC<GameUIProps> = ({ game, onModeSelect }) => {
     const { currentScene, level, score, timeLeft, ink } = useGameState();
     const { user, isLoggedIn, logout } = useAuthStore();
     const [showAuthModal, setShowAuthModal] = useState(false);
+    const [showSignInWarning, setShowSignInWarning] = useState(true);
+
+    // Hide sign-in warning after 5 seconds
+    useEffect(() => {
+        if (!isLoggedIn && currentScene === 'game') {
+            const timer = setTimeout(() => {
+                setShowSignInWarning(false);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [isLoggedIn, currentScene]);
+
+    // Reset warning when scene changes
+    useEffect(() => {
+        if (currentScene === 'game') {
+            setShowSignInWarning(true);
+        }
+    }, [currentScene]);
     
     const handleStartGame = () => {
         if (game && game.scene) {
@@ -54,7 +73,7 @@ export const GameUI: React.FC<GameUIProps> = ({ game }) => {
         <>
             {/* Menu Overlay */}
             {currentScene === 'menu' && (
-                <MenuOverlay onStartGame={handleStartGame} />
+                <MenuOverlay onModeSelect={onModeSelect || (() => {})} />
             )}
             
             {/* Game Over Overlay */}
@@ -69,10 +88,10 @@ export const GameUI: React.FC<GameUIProps> = ({ game }) => {
             
             <div className="absolute inset-0 pointer-events-none">
                 {/* Account Button - Always visible */}
-                <div className="absolute top-6 right-6 pointer-events-auto">
+                <div className="absolute top-6 right-6 pointer-events-auto z-50">
                     {isLoggedIn ? (
                         <div className="flex gap-3 items-center">
-                            <div className="bg-white/90 backdrop-blur text-gray-900 px-4 py-2 rounded-lg shadow-lg border border-gray-200">
+                            <div className="bg-white/95 backdrop-blur text-gray-900 px-4 py-2 rounded-lg shadow-xl border border-gray-200">
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <span className="font-medium">{user?.username}</span>
@@ -83,7 +102,7 @@ export const GameUI: React.FC<GameUIProps> = ({ game }) => {
                                 variant="outline" 
                                 size="sm" 
                                 onClick={logout}
-                                className="bg-white/90 hover:bg-red-50 text-red-600 border-red-200 hover:border-red-300"
+                                className="bg-white/95 hover:bg-red-50 text-red-600 border-red-200 hover:border-red-300 shadow-xl"
                             >
                                 Sign Out
                             </Button>
@@ -91,19 +110,19 @@ export const GameUI: React.FC<GameUIProps> = ({ game }) => {
                     ) : (
                         <Button 
                             onClick={() => setShowAuthModal(true)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-lg transition-colors"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-xl transition-all duration-200 font-semibold border-2 border-blue-400 hover:border-blue-300 transform hover:scale-105 active:scale-95"
                         >
-                            Sign In
+                            🔐 Sign In
                         </Button>
                     )}
                 </div>
 
-                {/* Enhanced Game HUD - Only during gameplay */}
+                {/* Enhanced Game HUD - Only during drawing game mode */}
                 {currentScene === 'game' && (
                     <div className="absolute top-6 left-1/2 transform -translate-x-1/2 flex gap-4">
                         <div className="bg-gradient-to-br from-blue-600/90 to-blue-800/90 backdrop-blur text-white px-4 py-3 rounded-2xl shadow-2xl border border-blue-400/30">
                             <div className="text-xs text-blue-200 font-medium mb-1">Level</div>
-                            <div className="font-bold text-2xl text-center">{level}</div>
+                            <div className="font-bold text-2xl text-center">{level === 0 ? "Tutorial" : level}</div>
                         </div>
                         <div className="bg-gradient-to-br from-emerald-600/90 to-emerald-800/90 backdrop-blur text-white px-4 py-3 rounded-2xl shadow-2xl border border-emerald-400/30">
                             <div className="text-xs text-emerald-200 font-medium mb-1">Score</div>
@@ -146,6 +165,12 @@ export const GameUI: React.FC<GameUIProps> = ({ game }) => {
                         <div className="text-lg font-semibold mb-2">Protect the Capybara!</div>
                         <div className="text-sm text-indigo-100">Drag to draw magical barriers and use your ink wisely</div>
                         <div className="mt-2 text-xs text-indigo-200">🖱️ Mouse • 👆 Touch • 🎯 Strategic placement</div>
+                        {level === 0 && (
+                            <div className="mt-3 text-sm text-yellow-200 border-t border-indigo-400/30 pt-3">
+                                🎓 Tutorial: Press SPACE to change barrier types!<br/>
+                                Draw near power-ups to collect them!
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -158,10 +183,13 @@ export const GameUI: React.FC<GameUIProps> = ({ game }) => {
                     </div>
                 )}
 
-                {/* Not logged in warning during game */}
-                {currentScene === 'game' && !isLoggedIn && (
-                    <div className="absolute top-24 left-1/2 transform -translate-x-1/2 bg-amber-100 text-amber-800 px-4 py-2 rounded-lg text-center text-sm border border-amber-200">
-                        Sign in to save your scores
+                {/* Not logged in warning during game - temporary */}
+                {currentScene === 'game' && !isLoggedIn && showSignInWarning && (
+                    <div className="absolute top-24 left-1/2 transform -translate-x-1/2 bg-amber-100 text-amber-800 px-4 py-3 rounded-lg text-center text-sm border border-amber-200 shadow-lg animate-pulse">
+                        <div className="flex items-center gap-2">
+                            <span>💾</span>
+                            <span>Sign in to save your scores</span>
+                        </div>
                     </div>
                 )}
             </div>

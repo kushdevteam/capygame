@@ -14,6 +14,16 @@ export interface LevelConfig {
 
 export const levels: LevelConfig[] = [
     {
+        id: 0,
+        name: "Tutorial: Learn to Draw",
+        capybaraPosition: { x: 400, y: 300 },
+        beeSpawns: [
+            { x: 100, y: 300, delay: 2, speed: 30 }
+        ],
+        timeLimit: 5,
+        inkLimit: 100
+    },
+    {
         id: 1,
         name: "First Contact",
         capybaraPosition: { x: 400, y: 300 },

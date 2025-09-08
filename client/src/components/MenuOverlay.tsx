@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Settings } from 'lucide-react';
+import { SettingsModal } from './SettingsModal';
 const backgroundImage = '/images/AAA_capybara_wetland_background_ab88ce49.png';
 const heroImage = '/images/custom_capybara.png';
 const barrierImage = '/images/AAA_magical_barrier_UI_b6d0d11f.png';
 
 interface MenuOverlayProps {
-    onStartGame: () => void;
+    onModeSelect: (mode: 'drawing' | 'tower-defense') => void;
 }
 
 const FloatingParticle: React.FC<{ delay: number }> = ({ delay }) => (
@@ -41,9 +43,10 @@ const GlowingText: React.FC<{ children: React.ReactNode; className?: string }> =
     </div>
 );
 
-export const MenuOverlay: React.FC<MenuOverlayProps> = ({ onStartGame }) => {
+export const MenuOverlay: React.FC<MenuOverlayProps> = ({ onModeSelect }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [particles, setParticles] = useState<number[]>([]);
+    const [showSettings, setShowSettings] = useState(false);
 
     useEffect(() => {
         // Generate floating particles
@@ -190,7 +193,7 @@ export const MenuOverlay: React.FC<MenuOverlayProps> = ({ onStartGame }) => {
                         </div>
                     </motion.div>
 
-                    {/* Start button */}
+                    {/* Game mode buttons */}
                     <motion.div
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
@@ -201,9 +204,10 @@ export const MenuOverlay: React.FC<MenuOverlayProps> = ({ onStartGame }) => {
                             stiffness: 200,
                             damping: 15
                         }}
+                        className="flex flex-col gap-4"
                     >
                         <Button
-                            onClick={onStartGame}
+                            onClick={() => onModeSelect('drawing')}
                             onMouseEnter={() => setIsHovered(true)}
                             onMouseLeave={() => setIsHovered(false)}
                             className="relative group bg-gradient-to-r from-emerald-500 via-green-600 to-emerald-500 hover:from-emerald-400 hover:via-green-500 hover:to-emerald-400 text-white font-bold px-10 py-4 text-xl rounded-2xl shadow-2xl hover:shadow-emerald-500/50 border-2 border-emerald-400 transition-all duration-300 transform hover:scale-110 active:scale-95 overflow-hidden"
@@ -222,8 +226,19 @@ export const MenuOverlay: React.FC<MenuOverlayProps> = ({ onStartGame }) => {
                             
                             <span className="relative z-10 flex items-center gap-3">
                                 <span className="text-3xl">⚔️</span>
-                                <span>BEGIN QUEST</span>
+                                <span>DRAWING MODE</span>
                                 <span className="text-3xl">✨</span>
+                            </span>
+                        </Button>
+
+                        <Button
+                            onClick={() => onModeSelect('tower-defense')}
+                            className="relative group bg-gradient-to-r from-blue-500 via-purple-600 to-blue-500 hover:from-blue-400 hover:via-purple-500 hover:to-blue-400 text-white font-bold px-10 py-4 text-xl rounded-2xl shadow-2xl hover:shadow-blue-500/50 border-2 border-blue-400 transition-all duration-300 transform hover:scale-110 active:scale-95 overflow-hidden"
+                        >
+                            <span className="relative z-10 flex items-center gap-3">
+                                <span className="text-3xl">🏰</span>
+                                <span>TOWER DEFENSE</span>
+                                <span className="text-3xl">🛡️</span>
                             </span>
                         </Button>
                     </motion.div>
@@ -244,6 +259,23 @@ export const MenuOverlay: React.FC<MenuOverlayProps> = ({ onStartGame }) => {
                     </motion.div>
                 </motion.div>
             </div>
+
+            {/* Settings button */}
+            <motion.button
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1.8, duration: 0.5 }}
+                onClick={() => setShowSettings(true)}
+                className="absolute top-6 right-6 z-20 p-3 bg-slate-800/80 hover:bg-slate-700/80 backdrop-blur-sm rounded-full text-white hover:text-amber-300 transition-all duration-300 shadow-lg hover:shadow-xl border border-slate-600/50"
+            >
+                <Settings className="w-6 h-6" />
+            </motion.button>
+
+            {/* Settings Modal */}
+            <SettingsModal 
+                isOpen={showSettings} 
+                onClose={() => setShowSettings(false)} 
+            />
 
             <style>{`
                 @keyframes pulse {

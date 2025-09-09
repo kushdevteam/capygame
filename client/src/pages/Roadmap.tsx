@@ -16,12 +16,13 @@ export const Roadmap: React.FC = () => {
       icon: <CheckCircle className="h-6 w-6 text-green-400" />,
       timeline: "Q4 2024",
       items: [
-        "✅ Game core mechanics development",
+        "✅ Endless runner core mechanics",
+        "✅ Precision jumping system",
+        "✅ Procedural island generation",
         "✅ Solana wallet integration",
-        "✅ 12 handcrafted levels",
-        "✅ Achievement system implementation",
+        "✅ Achievement and scoring system",
         "✅ User registration and authentication",
-        "✅ Basic leaderboards",
+        "✅ Basic leaderboards and stats tracking",
         "✅ Community Telegram bot setup"
       ]
     },
@@ -33,11 +34,11 @@ export const Roadmap: React.FC = () => {
       timeline: "Q1 2025",
       items: [
         "🔄 $CAPY token deployment on PumpFun",
-        "🔄 Play-to-earn reward system activation",
-        "📅 Daily and weekly tournaments",
+        "🔄 Distance-based reward system activation",
+        "📅 Survival challenge tournaments",
         "📅 Enhanced anti-cheat measures",
         "📅 Mobile responsive optimization",
-        "📅 Social sharing features",
+        "📅 Social sharing and replay features",
         "📅 Referral reward program"
       ]
     },
@@ -48,9 +49,9 @@ export const Roadmap: React.FC = () => {
       icon: <Users className="h-6 w-6 text-blue-400" />,
       timeline: "Q2 2025",
       items: [
-        "🎯 Guild system and team battles",
-        "🎯 Player-created level editor",
-        "🎯 NFT capybara skins and customization",
+        "🎯 Multiplayer race modes",
+        "🎯 Island creator tools for community",
+        "🎯 NFT capybara characters and power-ups",
         "🎯 Cross-platform mobile app launch",
         "🎯 Community governance voting",
         "🎯 Expanded Telegram bot features",
@@ -64,10 +65,10 @@ export const Roadmap: React.FC = () => {
       icon: <Star className="h-6 w-6 text-purple-400" />,
       timeline: "Q3 2025",
       items: [
-        "⭐ PvP multiplayer battles",
-        "⭐ Seasonal events and special levels",
+        "⭐ Real-time multiplayer racing",
+        "⭐ Seasonal themed island worlds",
         "⭐ Advanced analytics dashboard",
-        "⭐ AI-powered level generation",
+        "⭐ AI-powered procedural worlds",
         "⭐ VR/AR experimental features",
         "⭐ Cross-chain bridge to Ethereum",
         "⭐ Merchandise and real-world rewards"
@@ -81,12 +82,12 @@ export const Roadmap: React.FC = () => {
       timeline: "Q4 2025 & Beyond",
       items: [
         "🚀 Save the Capybara franchise expansion",
-        "🚀 Developer SDK for third-party levels",
+        "🚀 Developer SDK for custom worlds",
         "🚀 Metaverse integration and virtual worlds",
         "🚀 Educational partnerships and gamification",
         "🚀 Real-world capybara conservation initiatives",
         "🚀 Blockchain gaming conference sponsorships",
-        "🚀 Global esports tournament series"
+        "🚀 Global speedrunning tournament series"
       ]
     }
   ];
@@ -102,17 +103,18 @@ export const Roadmap: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative overflow-y-auto" style={{ height: '100vh' }}>
       {/* Game Background */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat -z-10"
         style={{ 
           backgroundImage: `url('/images/AAA_capybara_wetland_background_ab88ce49.png')`,
-          filter: 'brightness(0.6) contrast(1.1)'
+          filter: 'brightness(0.6) contrast(1.1)',
+          backgroundAttachment: 'fixed'
         }}
       />
       {/* Atmospheric overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40" />
+      <div className="fixed inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40 -z-10" />
       
       <div className="relative z-10 container mx-auto px-6 py-8 max-w-6xl">
         {/* Header */}
@@ -209,8 +211,8 @@ export const Roadmap: React.FC = () => {
           <CardContent className="p-8 text-center">
             <h2 className="text-3xl font-bold text-white mb-4">Be Part of Our Journey</h2>
             <p className="text-amber-50 mb-6 max-w-2xl mx-auto">
-              Join thousands of players already enjoying Save the Capybara. Connect your wallet, 
-              start playing, and earn rewards as we build the future of gaming together.
+              Join thousands of adventurers already exploring the endless islands of Save the Capybara. 
+              Connect your wallet, master the jumping mechanics, and earn $CAPY rewards as you survive!
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button className="bg-gradient-to-r from-amber-500 to-emerald-600 hover:from-amber-600 hover:to-emerald-700 text-white font-bold px-8 py-3">

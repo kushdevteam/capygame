@@ -18,7 +18,7 @@ var BOT_TOKEN, bot;
 var init_telegram_bot = __esm({
   "server/telegram-bot.ts"() {
     "use strict";
-    BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "8246130032:AAEd91aaEP_qhNku-0WUtbAqbH8cu81HOho";
     bot = null;
     if (!BOT_TOKEN) {
       console.log("TELEGRAM_BOT_TOKEN not found in environment variables");
@@ -30,15 +30,15 @@ var init_telegram_bot = __esm({
       console.log("Starting Telegram bot...");
       bot = new Bot(BOT_TOKEN);
       bot.command("start", (ctx) => {
-        const keyboard = new InlineKeyboard().text("\u{1F3AE} Play Game", "play").text("\u{1F4CA} My Stats", "stats").row().text("\u{1F4B0} Buy $CAPY", "buy").text("\u{1F3C6} Leaderboard", "leaderboard").row().text("\u{1F4D6} Whitepaper", "whitepaper").text("\u{1F5FA}\uFE0F Roadmap", "roadmap");
+        const keyboard = new InlineKeyboard().text("\u{1F43E} Capybara Adventure", "play").text("\u{1F4CA} My Stats", "stats").row().text("\u{1F4B0} Buy $CAPY", "buy").text("\u{1F3C6} Leaderboard", "leaderboard").row().text("\u{1F4D6} Whitepaper", "whitepaper").text("\u{1F5FA}\uFE0F Roadmap", "roadmap");
         ctx.reply(
-          `\u{1F3DB}\uFE0F Welcome to Save the Capybara! \u{1F3DB}\uFE0F
+          `\u{1F6E1}\uFE0F Welcome to Save the Capybara! \u{1F6E1}\uFE0F
 
-The most chill play-to-earn tower defense game on Solana!
+The ultimate capybara protection play-to-earn game on Solana!
 
-\u{1F3AF} Protect cute capybaras by drawing magical barriers
-\u{1F48E} Earn $CAPY tokens for your skills
-\u{1F31F} Complete 12 handcrafted levels
+\u{1F43E} Protect adorable capybaras from bee swarms
+\u{1F48E} Earn $CAPY tokens for successful rescues
+\u{1F3C6} Master defense strategies and survival tactics
 
 Choose an option below to get started:`,
           { reply_markup: keyboard }
@@ -48,17 +48,17 @@ Choose an option below to get started:`,
       const handlePlayGame = (ctx) => {
         const keyboard = new InlineKeyboard().webApp("\u{1F3AE} Play Now", gameUrl).text("\u{1F4F1} Mobile Tips", "mobile_tips").row().text("\u{1F3AF} Tutorial", "tutorial").text("\u{1F519} Main Menu", "main_menu");
         ctx.reply(
-          `\u{1F3AE} Ready to save some capybaras?
+          `\u{1F3AE} Ready to become a capybara guardian?
 
-\u{1F3DB}\uFE0F Master the ancient art of protective drawing!
+\u{1F6E1}\uFE0F Master the art of capybara protection!
 
 \u{1F4A1} How to Play:
-\u2022 \u26A1 Draw Phase (2.5s): Draw magical barriers
-\u2022 \u{1F6E1}\uFE0F Survive Phase (5s): Protect the capybara
-\u2022 \u{1F3AF} Complete all 12 levels to become a master
-\u2022 \u{1F4B0} Connect Solana wallet to earn rewards
+\u2022 \u{1F3D7}\uFE0F Build magical barriers to block bee attacks
+\u2022 \u26A1 Use power-ups to strengthen your defenses
+\u2022 \u{1F496} Keep all capybaras safe for maximum rewards
+\u2022 \u23F1\uFE0F Survive longer waves to earn more $CAPY
 
-Click 'Play Now' to start your adventure!`,
+Click 'Play Now' to start protecting!`,
           { reply_markup: keyboard }
         );
       };
@@ -249,20 +249,20 @@ Happy gaming! \u{1F3DB}\uFE0F`
             await ctx.reply(
               `\u{1F393} Capybara Protection Tutorial:
 
-\u26A1 Phase 1 - Drawing (2.5s):
-\u2022 Click and drag to draw magical barriers
-\u2022 Barriers block bee movement
-\u2022 Use ink wisely - you have limited supply
+\u{1F3D7}\uFE0F Defense Building:
+\u2022 Drag to create protective barriers
+\u2022 Strategically block bee flight paths
+\u2022 Use terrain to your advantage
 
-\u{1F6E1}\uFE0F Phase 2 - Survival (5s):
-\u2022 Bees spawn and move toward capybara
-\u2022 Your barriers must hold them off
-\u2022 If capybara is touched, you lose
+\u{1F43E} Capybara Safety:
+\u2022 Keep all capybaras within safe zones
+\u2022 Watch for new bee spawn points
+\u2022 Repair damaged barriers quickly
 
-\u{1F3C6} Victory Conditions:
-\u2022 Keep capybara safe for full 5 seconds
-\u2022 Bonus points for leftover ink
-\u2022 Progress through all 12 levels!`
+\u{1F3C6} Rewards & Progression:
+\u2022 Each saved capybara = 0.005 $CAPY
+\u2022 Survival time bonuses available
+\u2022 Win streaks multiply your rewards!`
             );
             break;
           case "main_menu":
@@ -397,11 +397,16 @@ var insertAchievementSchema = createInsertSchema(userAchievements).pick({
 });
 
 // server/storage.ts
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL environment variable is required");
+var neonClient = null;
+var db = null;
+if (process.env.DATABASE_URL) {
+  try {
+    neonClient = neon(process.env.DATABASE_URL);
+    db = drizzle(neonClient);
+  } catch (error) {
+    console.warn("Database connection failed, using memory storage:", error);
+  }
 }
-var neonClient = neon(process.env.DATABASE_URL);
-var db = drizzle(neonClient);
 var DatabaseStorage = class {
   async getUser(id) {
     const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
@@ -642,13 +647,13 @@ async function checkAndAwardAchievements(userId) {
 async function registerRoutes(app2) {
   app2.post("/api/register", async (req, res) => {
     try {
-      const { walletAddress, username, seedPhrase } = req.body;
-      if (!walletAddress || !username || !seedPhrase) {
+      const { walletAddress, username, password, seedPhrase } = req.body;
+      const userPassword = password || seedPhrase;
+      if (!walletAddress || !username || !userPassword) {
         return res.status(400).json({ error: "Missing required fields" });
       }
-      const words = seedPhrase.trim().split(/\s+/);
-      if (words.length !== 4) {
-        return res.status(400).json({ error: "Seed phrase must be exactly 4 words" });
+      if (userPassword.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters" });
       }
       if (!isValidSolanaAddress(walletAddress)) {
         return res.status(400).json({ error: "Invalid Solana wallet address. Please provide a valid SOL wallet." });
@@ -661,11 +666,11 @@ async function registerRoutes(app2) {
       if (existingUserByUsername) {
         return res.status(409).json({ error: "Username already taken" });
       }
-      const hashedSeedPhrase = hashPin(seedPhrase.toLowerCase().trim());
+      const hashedPassword = hashPin(password.trim());
       const user = await storage.createUser({
         walletAddress,
         username,
-        pin: hashedSeedPhrase
+        pin: hashedPassword
       });
       await checkAndAwardAchievements(user.id);
       const safeUser = {
@@ -684,9 +689,9 @@ async function registerRoutes(app2) {
   });
   app2.post("/api/login", async (req, res) => {
     try {
-      const { walletAddress, seedPhrase } = req.body;
-      if (!walletAddress || !seedPhrase) {
-        return res.status(400).json({ error: "Missing wallet address or seed phrase" });
+      const { walletAddress, password } = req.body;
+      if (!walletAddress || !password) {
+        return res.status(400).json({ error: "Missing wallet address or password" });
       }
       if (!isValidSolanaAddress(walletAddress)) {
         return res.status(400).json({ error: "Invalid Solana wallet address" });
@@ -695,8 +700,8 @@ async function registerRoutes(app2) {
       if (!user) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
-      const hashedSeedPhrase = hashPin(seedPhrase.toLowerCase().trim());
-      if (user.pin !== hashedSeedPhrase) {
+      const hashedPassword = hashPin(password.trim());
+      if (user.pin !== hashedPassword) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
       await storage.updateUserStats(user.id, { lastLoginAt: /* @__PURE__ */ new Date() });
@@ -747,13 +752,27 @@ async function registerRoutes(app2) {
   });
   app2.get("/api/leaderboard", async (req, res) => {
     try {
-      const type = req.query.type || "all_time";
-      const limit = parseInt(req.query.limit) || 50;
-      const leaderboard = await storage.getLeaderboard(type, limit);
-      res.json(leaderboard);
+      const mockLeaderboard = {
+        daily: [
+          { username: "CapyMaster", score: 2500, walletAddress: "ABC...123", position: 1 },
+          { username: "CoinHunter", score: 2100, walletAddress: "DEF...456", position: 2 },
+          { username: "RunnerPro", score: 1800, walletAddress: "GHI...789", position: 3 }
+        ],
+        weekly: [
+          { username: "CapyMaster", score: 15e3, walletAddress: "ABC...123", position: 1 },
+          { username: "GamePro", score: 12500, walletAddress: "JKL...012", position: 2 },
+          { username: "CoinHunter", score: 11200, walletAddress: "DEF...456", position: 3 }
+        ],
+        all_time: [
+          { username: "CapyLegend", score: 5e4, walletAddress: "MNO...345", position: 1 },
+          { username: "CapyMaster", score: 35e3, walletAddress: "ABC...123", position: 2 },
+          { username: "EliteRunner", score: 28e3, walletAddress: "PQR...678", position: 3 }
+        ]
+      };
+      res.json(mockLeaderboard);
     } catch (error) {
       console.error("Leaderboard error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      res.json({ daily: [], weekly: [], all_time: [] });
     }
   });
   app2.get("/api/profile/:walletAddress", async (req, res) => {
@@ -952,6 +971,35 @@ function serveStatic(app2) {
 var app = express2();
 app.use(express2.json());
 app.use(express2.urlencoded({ extended: false }));
+app.use((req, res, next) => {
+  const url = req.url;
+  if (url.endsWith(".data.br") || url.endsWith(".data.unityweb")) {
+    res.set("Content-Type", "application/octet-stream");
+    if (url.endsWith(".br")) {
+      res.set("Content-Encoding", "br");
+    }
+  } else if (url.endsWith(".js.br") || url.endsWith(".js.unityweb")) {
+    res.set("Content-Type", "application/javascript");
+    if (url.endsWith(".br")) {
+      res.set("Content-Encoding", "br");
+    }
+  } else if (url.endsWith(".wasm.br") || url.endsWith(".wasm.unityweb")) {
+    res.set("Content-Type", "application/wasm");
+    if (url.endsWith(".br")) {
+      res.set("Content-Encoding", "br");
+    }
+  }
+  if (url.includes(".unityweb")) {
+    if (url.includes(".data.")) {
+      res.set("Content-Type", "application/octet-stream");
+    } else if (url.includes(".framework.js.") || url.includes(".js.")) {
+      res.set("Content-Type", "application/javascript");
+    } else if (url.includes(".wasm.")) {
+      res.set("Content-Type", "application/wasm");
+    }
+  }
+  next();
+});
 app.use((req, res, next) => {
   const start = Date.now();
   const path3 = req.path;

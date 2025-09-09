@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Save the Capybara - Tower Defense Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                    chart: {
+                        "1": "var(--chart-1)",
+                        "2": "var(--chart-2)",
+                        "3": "var(--chart-3)",
+                        "4": "var(--chart-4)",
+                        "5": "var(--chart-5)",
+                    }
+                },
+                fontFamily: {
+                    sans: ["var(--font-sans)"],
+                    serif: ["var(--font-serif)"],
+                    mono: ["var(--font-mono)"],
+                },
+                animation: {
+                    'float': 'float 3s ease-in-out infinite',
+                    'sparkle': 'sparkle 2s ease-in-out infinite',
+                    'bee-fly': 'bee-fly 4s ease-in-out infinite',
+                    'progress': 'progress 0.5s ease-out',
+                    'fade-in': 'fade-in 0.8s ease-out',
+                }
+            },
+        }
+    };
+    </script>
+    <style>
+        :root {
+            --background: hsl(150 45% 8%);
+            --foreground: hsl(150 5% 95%);
+            --card: hsl(150 25% 12%);
+            --card-foreground: hsl(150 5% 90%);
+            --popover: hsl(150 25% 10%);
+            --popover-foreground: hsl(150 5% 95%);
+            --primary: hsl(152 65% 45%);
+            --primary-foreground: hsl(150 5% 95%);
+            --secondary: hsl(45 85% 50%);
+            --secondary-foreground: hsl(45 5% 15%);
+            --muted: hsl(150 20% 15%);
+            --muted-foreground: hsl(150 5% 70%);
+            --accent: hsl(270 65% 65%);
+            --accent-foreground: hsl(150 5% 95%);
+            --destructive: hsl(0 85% 60%);
+            --destructive-foreground: hsl(150 5% 95%);
+            --border: hsl(150 20% 20%);
+            --input: hsl(150 20% 15%);
+            --ring: hsl(152 65% 45%);
+            --radius: 12px;
+            --font-sans: 'Inter', system-ui, sans-serif;
+            --font-serif: 'Georgia', serif;
+            --font-mono: 'Monaco', monospace;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1) rotate(180deg); }
+        }
+
+        @keyframes bee-fly {
+            0% { transform: translateX(0px) translateY(0px); }
+            25% { transform: translateX(30px) translateY(-20px); }
+            50% { transform: translateX(-20px) translateY(-10px); }
+            75% { transform: translateX(15px) translateY(10px); }
+            100% { transform: translateX(0px) translateY(0px); }
+        }
+
+        @keyframes progress {
+            from { width: 0%; }
+            to { width: var(--progress-width); }
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bg-wetland {
+            background: linear-gradient(135deg, 
+                hsl(150 45% 8%) 0%, 
+                hsl(155 40% 12%) 25%, 
+                hsl(160 35% 10%) 50%, 
+                hsl(150 40% 8%) 100%);
+        }
+
+        .glass-panel {
+            background: rgba(22, 78, 99, 0.15);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #fbbf24;
+            border-radius: 50%;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        .bee {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #f59e0b;
+            border-radius: 50%;
+            animation: bee-fly 4s ease-in-out infinite;
+        }
+
+        .bee::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: rgba(245, 158, 11, 0.3);
+            border-radius: 50%;
+        }
+
+        #unity-container {
+            width: 100%;
+            height: 600px;
+            background: #000;
+            border-radius: var(--radius);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, 
+                hsl(152 65% 45%) 0%, 
+                hsl(45 85% 50%) 100%);
+            transition: width 0.3s ease-out;
+        }
+
+        .scroll-container {
+            max-height: 400px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: hsl(152 65% 45%) transparent;
+        }
+
+        .scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scroll-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .scroll-container::-webkit-scrollbar-thumb {
+            background: hsl(152 65% 45%);
+            border-radius: 3px;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-wetland min-h-screen font-sans text-foreground">
+    <!-- Animated Background Elements -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden">
+        <!-- Wetland background image -->
+        <!-- Lush tropical wetland with capybaras and lily pads -->
+        <div class="absolute inset-0" style="background-image: url('https://images.unsplash.com/photo-1518837695005-2083093ee35b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&h=1080'); background-size: cover; background-position: center; opacity: 0.6;"></div>
+        
+        <!-- Animated particles -->
+        <div class="sparkle" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
+        <div class="sparkle" style="top: 40%; left: 80%; animation-delay: 0.5s;"></div>
+        <div class="sparkle" style="top: 70%; left: 20%; animation-delay: 1s;"></div>
+        <div class="sparkle" style="top: 30%; left: 60%; animation-delay: 1.5s;"></div>
+        
+        <div class="bee" style="top: 15%; left: 70%; animation-delay: 0s;"></div>
+        <div class="bee" style="top: 50%; left: 15%; animation-delay: 2s;"></div>
+        <div class="bee" style="top: 80%; left: 85%; animation-delay: 1s;"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="relative z-10">
+        <!-- Navigation Header -->
+        <nav class="glass-panel p-4 m-4 rounded-lg animate-fade-in">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                        <i class="fas fa-leaf text-white text-xl"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold text-primary">Save the Capybara</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg font-semibold hover:bg-secondary/90 transition-colors">
+                        Connect Wallet
+                    </button>
+                    <button class="text-muted-foreground hover:text-foreground transition-colors">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section with Game Stats -->
+        <div class="px-4 mb-8">
+            <!-- @COMPONENT: GameStatsHeader -->
+            <div class="glass-panel rounded-lg p-6 animate-fade-in">
+                <div class="text-center mb-6">
+                    <h2 class="text-4xl font-bold mb-2">Protect Our Beloved Capybaras</h2>
+                    <p class="text-muted-foreground">Defend the wetland sanctuary from buzzing danger and earn $CAPY rewards!</p>
+                </div>
+
+                <!-- Stats Grid -->
+                <!-- @MAP: statsData.map(stat => ( -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div class="text-center p-4 rounded-lg bg-card">
+                        <div class="w-12 h-12 bg-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-heart text-pink-500 text-xl"></i>
+                        </div>
+                        <div class="text-2xl font-bold" data-bind="stats.capybarasSaved">0</div>
+                        <div class="text-sm text-muted-foreground">Capybaras Saved</div>
+                    </div>
+                    
+                    <div class="text-center p-4 rounded-lg bg-card">
+                        <div class="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-clock text-blue-500 text-xl"></i>
+                        </div>
+                        <div class="text-2xl font-bold" data-bind="stats.bestSurvival">0s</div>
+                        <div class="text-sm text-muted-foreground">Best Survival</div>
+                    </div>
+                    
+                    <div class="text-center p-4 rounded-lg bg-card">
+                        <div class="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-bolt text-yellow-500 text-xl"></i>
+                        </div>
+                        <div class="text-2xl font-bold" data-bind="stats.winStreak">0</div>
+                        <div class="text-sm text-muted-foreground">Win Streak</div>
+                    </div>
+                    
+                    <div class="text-center p-4 rounded-lg bg-card">
+                        <div class="w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-trophy text-amber-500 text-xl"></i>
+                        </div>
+                        <div class="text-2xl font-bold" data-bind="stats.totalScore">0</div>
+                        <div class="text-sm text-muted-foreground">Total Score</div>
+                    </div>
+                    
+                    <div class="text-center p-4 rounded-lg bg-card">
+                        <div class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-coins text-green-500 text-xl"></i>
+                        </div>
+                        <div class="text-2xl font-bold" data-bind="stats.capyEarned">0.0000</div>
+                        <div class="text-sm text-muted-foreground">$CAPY Earned</div>
+                    </div>
+                    
+                    <div class="text-center p-4 rounded-lg bg-card">
+                        <div class="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-shield text-purple-500 text-xl"></i>
+                        </div>
+                        <div class="text-2xl font-bold" data-bind="stats.missionsCompleted">0</div>
+                        <div class="text-sm text-muted-foreground">Missions Completed</div>
+                    </div>
+                </div>
+                <!-- @END_MAP -->
+            </div>
+            <!-- @END_COMPONENT: GameStatsHeader -->
+        </div>
+
+        <!-- Game Container -->
+        <div class="px-4 mb-8">
+            <!-- @COMPONENT: UnityGameContainer -->
+            <div class="glass-panel rounded-lg overflow-hidden animate-fade-in">
+                <!-- Loading State -->
+                <div id="loading-screen" class="relative">
+                    <!-- Mystical capybara portrait -->
+                    <div class="text-center py-12">
+                        <div class="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden animate-float">
+                            <!-- 3D rendered capybara with mystical lighting -->
+                            <img src="https://pixabay.com/get/gd0b1ec19efce081431a8745e1faf43366ab7c798ac0bcf7ce0f331d4d08ce6d1e6414476d394f62e74e34abc0a5a41f4e12ec2e1f5cca91d7e7071b3c719cc6b_1280.jpg" alt="Mystical Capybara Guardian" class="w-full h-full object-cover" />
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Awakening the Capybara Guardians...</h3>
+                        <p class="text-muted-foreground mb-8">Preparing Defense Systems</p>
+                        
+                        <!-- Progress Bar -->
+                        <div class="max-w-md mx-auto mb-6">
+                            <div class="flex justify-between text-sm mb-2">
+                                <span>Loading Game Assets</span>
+                                <span id="progress-text" data-bind="loadingProgress">0%</span>
+                            </div>
+                            <div class="w-full bg-muted rounded-full h-3">
+                                <div id="progress-bar" class="progress-bar h-3 rounded-full transition-all duration-300" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="text-sm text-muted-foreground">
+                            <p data-implementation="Show Unity WebGL loading status">Note: Place your Unity WebGL build files in public/unity/Build/ directory</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unity Game Canvas -->
+                <div id="unity-container" class="hidden">
+                    <!-- @FUNCTIONALITY: Unity WebGL game will load here with proper MIME types and CORS headers -->
+                    <canvas id="unity-canvas" class="w-full h-full"></canvas>
+                </div>
+                
+                <!-- Error State -->
+                <div id="error-screen" class="hidden text-center py-12">
+                    <div class="w-16 h-16 bg-destructive/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-exclamation-triangle text-destructive text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Unable to Load Game</h3>
+                    <p class="text-muted-foreground mb-4">Please check your connection and try again</p>
+                    <button id="retry-btn" class="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-semibold hover:bg-primary/90 transition-colors">
+                        Retry Loading
+                    </button>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: UnityGameContainer -->
+        </div>
+
+        <!-- Mission Briefing -->
+        <div class="px-4 mb-8">
+            <!-- @COMPONENT: MissionBriefing -->
+            <div class="glass-panel rounded-lg p-6 animate-fade-in">
+                <h2 class="text-2xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-clipboard-list text-accent mr-3"></i>
+                    Mission Briefing
+                </h2>
+                
+                <div class="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-6">
+                    <div class="flex items-start">
+                        <i class="fas fa-exclamation-triangle text-destructive text-xl mr-3 mt-1"></i>
+                        <div>
+                            <h3 class="font-semibold mb-2">Situation:</h3>
+                            <p class="text-sm">Swarms of aggressive bees are threatening our peaceful capybara sanctuary! As the chief protector, you must use advanced defense systems to keep them safe.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-semibold mb-3 flex items-center">
+                            <i class="fas fa-gamepad text-primary mr-2"></i>
+                            How to Play:
+                        </h3>
+                        <ul class="space-y-2 text-sm text-muted-foreground">
+                            <li class="flex items-start">
+                                <i class="fas fa-hammer text-amber-500 mr-2 mt-1"></i>
+                                Build magical barriers to block bee swarms
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-bolt text-yellow-500 mr-2 mt-1"></i>
+                                Use power-ups to strengthen your defenses
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-heart text-red-500 mr-2 mt-1"></i>
+                                Keep all capybaras safe to win rounds
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-clock text-blue-500 mr-2 mt-1"></i>
+                                Survive as long as possible for high scores
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold mb-3 flex items-center">
+                            <i class="fas fa-gift text-secondary mr-2"></i>
+                            Rewards System:
+                        </h3>
+                        <ul class="space-y-2 text-sm text-muted-foreground">
+                            <li class="flex items-start">
+                                <i class="fas fa-star text-yellow-500 mr-2 mt-1"></i>
+                                +0.005 $CAPY per capybara saved
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-medal text-amber-500 mr-2 mt-1"></i>
+                                +0.02 $CAPY per 30 seconds survived
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-crown text-purple-500 mr-2 mt-1"></i>
+                                Bonus multipliers for perfect protection
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-trophy text-orange-500 mr-2 mt-1"></i>
+                                Special rewards for streak achievements
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: MissionBriefing -->
+        </div>
+
+        <!-- Tokenomics & Roadmap -->
+        <div class="px-4 mb-8">
+            <div class="grid lg:grid-cols-2 gap-6">
+                <!-- Tokenomics -->
+                <!-- @COMPONENT: TokenomicsPanel -->
+                <div class="glass-panel rounded-lg p-6 animate-fade-in">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-coins text-secondary mr-3"></i>
+                        Tokenomics ($CAPY)
+                    </h2>
+                    
+                    <div class="scroll-container">
+                        <div class="space-y-4">
+                            <div class="bg-card p-4 rounded-lg">
+                                <h3 class="font-semibold text-secondary mb-2">Token Distribution</h3>
+                                <ul class="space-y-2 text-sm text-muted-foreground">
+                                    <li class="flex justify-between">
+                                        <span>• Play-to-Earn Rewards</span>
+                                        <span class="text-foreground">40%</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span>• Liquidity Pool</span>
+                                        <span class="text-foreground">25%</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span>• Community Treasury</span>
+                                        <span class="text-foreground">20%</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span>• Development Team</span>
+                                        <span class="text-foreground">10%</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span>• Marketing & Partnerships</span>
+                                        <span class="text-foreground">5%</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-card p-4 rounded-lg">
+                                <h3 class="font-semibold text-primary mb-2">Earning Mechanisms</h3>
+                                <ul class="space-y-1 text-sm text-muted-foreground">
+                                    <li>• Daily achievement rewards</li>
+                                    <li>• Weekly tournament prizes</li>
+                                    <li>• Level completion bonuses</li>
+                                    <li>• Streak multipliers</li>
+                                    <li>• Community challenges</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: TokenomicsPanel -->
+
+                <!-- Technology & Roadmap -->
+                <!-- @COMPONENT: RoadmapPanel -->
+                <div class="glass-panel rounded-lg p-6 animate-fade-in">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-map text-accent mr-3"></i>
+                        Technology & Roadmap
+                    </h2>
+                    
+                    <div class="scroll-container">
+                        <div class="space-y-4">
+                            <div class="bg-card p-4 rounded-lg">
+                                <h3 class="font-semibold text-accent mb-2">Technology Stack</h3>
+                                <div class="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                    <div>
+                                        <h4 class="text-primary font-medium mb-1">Blockchain</h4>
+                                        <p>Built for low-cost transactions and scalable game experience</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-primary font-medium mb-1">Game Engine</h4>
+                                        <p>Powered by game engine with need for smooth gameplay and modern UI</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-primary font-medium mb-1">Wallet Integration</h4>
+                                        <p>Support for major wallets including Phantom, Solflare, and Backpack</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-primary font-medium mb-1">Security</h4>
+                                        <p>Smart contract audits and secure player data management with Backpack</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-card p-4 rounded-lg">
+                                <h3 class="font-semibold text-secondary mb-2">Development Roadmap</h3>
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex items-start">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full mr-3 mt-1 flex-shrink-0"></div>
+                                        <div>
+                                            <h4 class="font-medium text-green-400">Phase 1: Core Game (Complete)</h4>
+                                            <p class="text-muted-foreground">Base tower defense mechanics, Unity WebGL deployment</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <div class="w-3 h-3 bg-yellow-500 rounded-full mr-3 mt-1 flex-shrink-0"></div>
+                                        <div>
+                                            <h4 class="font-medium text-yellow-400">Phase 2: Token Integration (In Progress)</h4>
+                                            <p class="text-muted-foreground">$CAPY token launch, wallet connection, reward system</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <div class="w-3 h-3 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></div>
+                                        <div>
+                                            <h4 class="font-medium text-blue-400">Phase 3: Social Features</h4>
+                                            <p class="text-muted-foreground">Leaderboards, tournaments, guild system</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <div class="w-3 h-3 bg-purple-500 rounded-full mr-3 mt-1 flex-shrink-0"></div>
+                                        <div>
+                                            <h4 class="font-medium text-purple-400">Phase 4: NFT Expansion</h4>
+                                            <p class="text-muted-foreground">Collectible capybaras, unique defense towers</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: RoadmapPanel -->
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="glass-panel m-4 rounded-lg p-6 text-center">
+            <div class="flex justify-center items-center space-x-6 mb-4">
+                <a href="#" class="text-muted-foreground hover:text-primary transition-colors">
+                    <i class="fab fa-twitter text-xl"></i>
+                </a>
+                <a href="#" class="text-muted-foreground hover:text-primary transition-colors">
+                    <i class="fab fa-discord text-xl"></i>
+                </a>
+                <a href="#" class="text-muted-foreground hover:text-primary transition-colors">
+                    <i class="fab fa-telegram text-xl"></i>
+                </a>
+                <a href="#" class="text-muted-foreground hover:text-primary transition-colors">
+                    <i class="fab fa-github text-xl"></i>
+                </a>
+            </div>
+            <p class="text-sm text-muted-foreground">
+                © 2024 Save the Capybara. Protecting wetland sanctuaries through gaming.
+            </p>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        (function() {
+            // Game loading simulation and Unity integration
+            let loadingProgress = 0;
+            let loadingInterval;
+            
+            // @STATE: isLoading:boolean = true
+            // @STATE: gameLoaded:boolean = false
+            // @STATE: hasError:boolean = false
+            
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const loadingScreen = document.getElementById('loading-screen');
+            const unityContainer = document.getElementById('unity-container');
+            const errorScreen = document.getElementById('error-screen');
+            const retryBtn = document.getElementById('retry-btn');
+            
+            // Simulate Unity WebGL loading with realistic progress
+            function startGameLoading() {
+                loadingProgress = 0;
+                loadingInterval = setInterval(() => {
+                    // Simulate realistic loading curve
+                    const increment = Math.random() * 8 + 2;
+                    loadingProgress = Math.min(100, loadingProgress + increment);
+                    
+                    updateLoadingUI();
+                    
+                    if (loadingProgress >= 100) {
+                        clearInterval(loadingInterval);
+                        setTimeout(completeLoading, 500);
+                    }
+                }, 200);
+            }
+            
+            function updateLoadingUI() {
+                progressBar.style.width = `${loadingProgress}%`;
+                progressText.textContent = `${Math.round(loadingProgress)}%`;
+            }
+            
+            function completeLoading() {
+                loadingScreen.classList.add('hidden');
+                unityContainer.classList.remove('hidden');
+                
+                // TODO: Initialize actual Unity WebGL instance here
+                // Unity.createUnityInstance(canvas, buildConfig, onProgress);
+                
+                // Simulate game canvas
+                const canvas = document.getElementById('unity-canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                
+                // Draw placeholder game screen
+                ctx.fillStyle = '#1a4d3a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#10b981';
+                ctx.font = '24px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('Game Ready! Unity WebGL will load here', canvas.width/2, canvas.height/2);
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '16px Inter';
+                ctx.fillText('Place Unity build files in public/unity/Build/ directory', canvas.width/2, canvas.height/2 + 40);
+            }
+            
+            function showError() {
+                loadingScreen.classList.add('hidden');
+                errorScreen.classList.remove('hidden');
+            }
+            
+            // Event listeners
+            retryBtn.addEventListener('click', () => {
+                errorScreen.classList.add('hidden');
+                loadingScreen.classList.remove('hidden');
+                startGameLoading();
+            });
+            
+            // Initialize loading
+            document.addEventListener('DOMContentLoaded', () => {
+                // Start loading after short delay for better UX
+                setTimeout(startGameLoading, 1000);
+            });
+            
+            // Telegram bot integration placeholder
+            // TODO: Implement Telegram bot connection without port conflicts
+            function initTelegramBot() {
+                console.log('Telegram bot initialization - configure port settings');
+            }
+            
+            // Wallet connection simulation
+            function connectWallet() {
+                // TODO: Implement actual Solana wallet connection
+                console.log('Connecting to Solana wallet...');
+            }
+            
+            // Particle animation enhancements
+            function enhanceParticleAnimations() {
+                const sparkles = document.querySelectorAll('.sparkle');
+                const bees = document.querySelectorAll('.bee');
+                
+                // Add random delays to particles for more natural movement
+                sparkles.forEach((sparkle, index) => {
+                    sparkle.style.animationDelay = `${Math.random() * 2}s`;
+                    sparkle.style.animationDuration = `${2 + Math.random() * 1}s`;
+                });
+                
+                bees.forEach((bee, index) => {
+                    bee.style.animationDelay = `${Math.random() * 4}s`;
+                    bee.style.animationDuration = `${4 + Math.random() * 2}s`;
+                });
+            }
+            
+            // Enhanced loading with better error handling
+            function handleUnityLoadingError(error) {
+                console.error('Unity loading failed:', error);
+                clearInterval(loadingInterval);
+                showError();
+            }
+            
+            // Initialize enhancements
+            enhanceParticleAnimations();
+            
+        })();
+    </script>
+</body>
+</html>

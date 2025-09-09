@@ -4,7 +4,7 @@
 import { Bot, InlineKeyboard } from 'grammy';
 
 // You'll need to get a bot token from @BotFather on Telegram
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8246130032:AAEd91aaEP_qhNku-0WUtbAqbH8cu81HOho';
 
 let bot: Bot | null = null;
 
@@ -22,7 +22,7 @@ if (!BOT_TOKEN) {
   // Welcome message with interactive buttons
   bot.command('start', (ctx) => {
     const keyboard = new InlineKeyboard()
-      .text('🎮 Play Game', 'play')
+      .text('🐾 Capybara Adventure', 'play')
       .text('📊 My Stats', 'stats').row()
       .text('💰 Buy $CAPY', 'buy')
       .text('🏆 Leaderboard', 'leaderboard').row()
@@ -30,11 +30,11 @@ if (!BOT_TOKEN) {
       .text('🗺️ Roadmap', 'roadmap');
 
     ctx.reply(
-      `🏛️ Welcome to Save the Capybara! 🏛️\n\n` +
-      `The most chill play-to-earn tower defense game on Solana!\n\n` +
-      `🎯 Protect cute capybaras by drawing magical barriers\n` +
-      `💎 Earn $CAPY tokens for your skills\n` +
-      `🌟 Complete 12 handcrafted levels\n\n` +
+      `🛡️ Welcome to Save the Capybara! 🛡️\n\n` +
+      `The ultimate capybara protection play-to-earn game on Solana!\n\n` +
+      `🐾 Protect adorable capybaras from bee swarms\n` +
+      `💎 Earn $CAPY tokens for successful rescues\n` +
+      `🏆 Master defense strategies and survival tactics\n\n` +
       `Choose an option below to get started:`,
       { reply_markup: keyboard }
     );
@@ -51,14 +51,14 @@ if (!BOT_TOKEN) {
       .text('🔙 Main Menu', 'main_menu');
 
     ctx.reply(
-      `🎮 Ready to save some capybaras?\n\n` +
-      `🏛️ Master the ancient art of protective drawing!\n\n` +
+      `🎮 Ready to become a capybara guardian?\n\n` +
+      `🛡️ Master the art of capybara protection!\n\n` +
       `💡 How to Play:\n` +
-      `• ⚡ Draw Phase (2.5s): Draw magical barriers\n` +
-      `• 🛡️ Survive Phase (5s): Protect the capybara\n` +
-      `• 🎯 Complete all 12 levels to become a master\n` +
-      `• 💰 Connect Solana wallet to earn rewards\n\n` +
-      `Click 'Play Now' to start your adventure!`,
+      `• 🏗️ Build magical barriers to block bee attacks\n` +
+      `• ⚡ Use power-ups to strengthen your defenses\n` +
+      `• 💖 Keep all capybaras safe for maximum rewards\n` +
+      `• ⏱️ Survive longer waves to earn more $CAPY\n\n` +
+      `Click 'Play Now' to start protecting!`,
       { reply_markup: keyboard }
     );
   };
@@ -273,18 +273,18 @@ if (!BOT_TOKEN) {
         await ctx.answerCallbackQuery();
         await ctx.reply(
           `🎓 Capybara Protection Tutorial:\n\n` +
-          `⚡ Phase 1 - Drawing (2.5s):\n` +
-          `• Click and drag to draw magical barriers\n` +
-          `• Barriers block bee movement\n` +
-          `• Use ink wisely - you have limited supply\n\n` +
-          `🛡️ Phase 2 - Survival (5s):\n` +
-          `• Bees spawn and move toward capybara\n` +
-          `• Your barriers must hold them off\n` +
-          `• If capybara is touched, you lose\n\n` +
-          `🏆 Victory Conditions:\n` +
-          `• Keep capybara safe for full 5 seconds\n` +
-          `• Bonus points for leftover ink\n` +
-          `• Progress through all 12 levels!`
+          `🏗️ Defense Building:\n` +
+          `• Drag to create protective barriers\n` +
+          `• Strategically block bee flight paths\n` +
+          `• Use terrain to your advantage\n\n` +
+          `🐾 Capybara Safety:\n` +
+          `• Keep all capybaras within safe zones\n` +
+          `• Watch for new bee spawn points\n` +
+          `• Repair damaged barriers quickly\n\n` +
+          `🏆 Rewards & Progression:\n` +
+          `• Each saved capybara = 0.005 $CAPY\n` +
+          `• Survival time bonuses available\n` +
+          `• Win streaks multiply your rewards!`
         );
         break;
       case 'main_menu':

@@ -9,17 +9,18 @@ export const Whitepaper: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative overflow-y-auto" style={{ height: '100vh' }}>
       {/* Game Background */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat -z-10"
         style={{ 
           backgroundImage: `url('/images/AAA_capybara_wetland_background_ab88ce49.png')`,
-          filter: 'brightness(0.6) contrast(1.1)'
+          filter: 'brightness(0.6) contrast(1.1)',
+          backgroundAttachment: 'fixed'
         }}
       />
       {/* Atmospheric overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40" />
+      <div className="fixed inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40 -z-10" />
       
       <div className="relative z-10 container mx-auto px-6 py-8 max-w-4xl">
         {/* Header */}
@@ -52,13 +53,13 @@ export const Whitepaper: React.FC = () => {
             </CardHeader>
             <CardContent className="text-amber-50 space-y-4">
               <p>
-                Save the Capybara is a revolutionary play-to-earn tower defense game built on the Solana blockchain. 
-                Players protect adorable capybaras from swarms of bees by drawing strategic barriers, earning rewards 
-                based on their performance and skill.
+                Save the Capybara is a thrilling endless adventure game built on the Solana blockchain. 
+                Players guide brave capybaras through challenging island landscapes using precision jumping mechanics, 
+                earning CAPYBARA rewards based on distance traveled, survival time, and collected treasures.
               </p>
               <p>
                 Our mission is to create the most engaging and rewarding gaming experience in the Solana ecosystem, 
-                combining fun gameplay with real economic value for our community.
+                combining addictive gameplay with real economic value for our community.
               </p>
             </CardContent>
           </Card>
@@ -73,16 +74,16 @@ export const Whitepaper: React.FC = () => {
             </CardHeader>
             <CardContent className="text-amber-50 space-y-4">
               <div>
-                <h3 className="text-lg font-semibold text-white mb-2">Drawing Phase (4.5 seconds)</h3>
-                <p>Players use their magical ink to draw protective barriers around the capybara. Strategic placement and efficient ink usage are key to success.</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Precision Jumping System</h3>
+                <p>Players control jump strength and distance with intuitive tap/hold mechanics. Master the art of timing and power to navigate between floating islands successfully.</p>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white mb-2">Survival Phase (5 seconds)</h3>
-                <p>Bees attack the capybara, and players must rely on their drawn defenses. Successfully protecting the capybara advances players to the next level.</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Endless Adventure Mode</h3>
+                <p>Survive as long as possible in procedurally generated island chains. Each run presents unique challenges with increasing difficulty and greater reward potential.</p>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white mb-2">Progressive Difficulty</h3>
-                <p>12 handcrafted levels with increasing bee numbers, speeds, and spawn patterns challenge players to continuously improve their strategies.</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Treasure Collection</h3>
+                <p>Collect coins, power-ups, and special items scattered throughout the island world. Strategic collection paths maximize both score and CAPYBARA token earnings.</p>
               </div>
             </CardContent>
           </Card>
@@ -92,7 +93,7 @@ export const Whitepaper: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Coins className="h-6 w-6 text-amber-400" />
-                Tokenomics ($CAPY)
+                Tokenomics (CAPYBARA)
               </CardTitle>
             </CardHeader>
             <CardContent className="text-amber-50 space-y-4">

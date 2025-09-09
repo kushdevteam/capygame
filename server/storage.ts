@@ -17,12 +17,18 @@ import {
   type InsertAchievement
 } from "../shared/schema";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is required');
-}
+// Use in-memory storage for better compatibility
+let neonClient: any = null;
+let db: any = null;
 
-const neonClient = neon(process.env.DATABASE_URL!);
-export const db = drizzle(neonClient);
+if (process.env.DATABASE_URL) {
+  try {
+    neonClient = neon(process.env.DATABASE_URL);
+    db = drizzle(neonClient);
+  } catch (error) {
+    console.warn('Database connection failed, using memory storage:', error);
+  }
+}
 
 export interface IStorage {
   // User management

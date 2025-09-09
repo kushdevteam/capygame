@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { WalletProvider } from './components/WalletProvider';
-import { Game } from './components/Game';
+import { WorkingCapiRush } from './components/WorkingCapiRush';
 import { LandingPage } from './pages/LandingPage';
 import { Whitepaper } from './pages/Whitepaper';
 import { Roadmap } from './pages/Roadmap';
+import { GamePage } from './pages/Game';
 import './index.css';
 
 function App() {
-  const [showGame, setShowGame] = useState(false);
+  const [currentGame, setCurrentGame] = useState<'none' | 'capirush'>('none');
 
   const handleEnterGame = () => {
-    setShowGame(true);
+    setCurrentGame('capirush');
   };
 
   const handleBackToLanding = () => {
-    setShowGame(false);
+    setCurrentGame('none');
   };
 
   return (
@@ -27,24 +28,25 @@ function App() {
         {/* Roadmap route - opens in new window */}
         <Route path="/roadmap" element={<Roadmap />} />
         
+        {/* Game route - New CAPYBARA COIN Infinite Runner */}
+        <Route path="/game" element={
+          <WalletProvider>
+            <WorkingCapiRush onBackToMenu={() => window.location.href = '/'} />
+          </WalletProvider>
+        } />
+        
         {/* Main application route */}
         <Route path="/*" element={
           <WalletProvider>
             <div className="w-full h-full">
-              {!showGame ? (
-                <LandingPage onEnterGame={handleEnterGame} />
-              ) : (
-                <div className="relative w-full h-full">
-                  {/* Back to Landing Button */}
-                  <button
-                    onClick={handleBackToLanding}
-                    className="absolute top-4 left-4 z-50 bg-black/50 hover:bg-black/70 text-white px-4 py-2 rounded-lg transition-all duration-200 backdrop-blur-sm border border-white/20"
-                  >
-                    ← Back to Landing
-                  </button>
-                  <Game />
-                </div>
-              )}
+              {currentGame === 'none' ? (
+                <LandingPage 
+                  onEnterGame={handleEnterGame}
+                  onEnterAdventure={handleEnterGame}
+                />
+              ) : currentGame === 'capirush' ? (
+                <WorkingCapiRush onBackToMenu={handleBackToLanding} />
+              ) : null}
             </div>
           </WalletProvider>
         } />

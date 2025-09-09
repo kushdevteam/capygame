@@ -59,40 +59,90 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onLoadingComplete 
       
       {/* Content */}
       <div className="relative z-10 text-center">
-        {/* Capybara character with loading animation */}
-        <motion.div
-          className="mb-8"
-          animate={{ 
-            y: [0, -10, 0],
-            rotate: [0, 2, -2, 0]
-          }}
-          transition={{ 
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        >
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-yellow-300/40 to-green-300/40 rounded-full blur-3xl scale-150" />
-            <img 
-              src={heroImage} 
-              alt="Loading Capybara" 
-              className="w-48 h-48 object-contain drop-shadow-2xl relative z-10"
-            />
-            
-            {/* Spinning sparkles */}
+        {/* Enhanced floating elements with better animations */}
+        <motion.div className="mb-8">
+          <div className="w-72 h-72 relative">
+            {/* Rotating sparkles */}
             <motion.div
-              className="absolute inset-0 flex items-center justify-center"
+              className="absolute inset-0"
               animate={{ rotate: 360 }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
             >
-              <div className="w-64 h-64 relative">
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 text-2xl">✨</div>
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-2xl">✨</div>
-                <div className="absolute left-0 top-1/2 transform -translate-y-1/2 text-2xl">✨</div>
-                <div className="absolute right-0 top-1/2 transform -translate-y-1/2 text-2xl">✨</div>
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2">
+                <motion.div
+                  className="text-4xl"
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                >✨</motion.div>
+              </div>
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2">
+                <motion.div
+                  className="text-4xl"
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                >✨</motion.div>
+              </div>
+              <div className="absolute left-0 top-1/2 transform -translate-y-1/2">
+                <motion.div
+                  className="text-4xl"
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                >✨</motion.div>
+              </div>
+              <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
+                <motion.div
+                  className="text-4xl"
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+                >✨</motion.div>
               </div>
             </motion.div>
+            
+            {/* Floating bees with more natural movement */}
+            <motion.div
+              className="absolute top-1/4 right-1/4"
+              animate={{ 
+                x: [0, 20, -10, 15, 0], 
+                y: [0, -15, 10, -5, 0],
+                rotate: [0, 10, -5, 8, 0]
+              }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <div className="text-3xl">🐝</div>
+            </motion.div>
+            
+            <motion.div
+              className="absolute bottom-1/4 left-1/4"
+              animate={{ 
+                x: [0, -15, 20, -10, 0], 
+                y: [0, 10, -20, 15, 0],
+                rotate: [0, -8, 12, -6, 0]
+              }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            >
+              <div className="text-3xl">🐝</div>
+            </motion.div>
+            
+            {/* Additional floating magical elements */}
+            <motion.div
+              className="absolute top-1/3 left-1/3 text-2xl opacity-60"
+              animate={{ 
+                y: [0, -20, 0], 
+                scale: [1, 1.1, 1],
+                opacity: [0.4, 0.8, 0.4]
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            >🌟</motion.div>
+            
+            <motion.div
+              className="absolute bottom-1/3 right-1/3 text-2xl opacity-60"
+              animate={{ 
+                y: [0, 20, 0], 
+                scale: [1, 1.1, 1],
+                opacity: [0.4, 0.8, 0.4]
+              }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+            >🌟</motion.div>
           </div>
         </motion.div>
         

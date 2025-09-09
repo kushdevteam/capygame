@@ -10,7 +10,7 @@ interface AuthState {
     user: User | null;
     isLoggedIn: boolean;
     login: (walletAddress: string, seedPhrase: string) => Promise<boolean>;
-    register: (walletAddress: string, username: string, seedPhrase: string) => Promise<boolean>;
+    register: (walletAddress: string, username: string, seedPhrase: string) => Promise<{success: boolean; error?: string}>;
     logout: () => void;
     setUser: (user: User | null) => void;
 }
@@ -52,12 +52,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 const userData = await response.json();
                 set({ user: userData.user, isLoggedIn: true });
                 localStorage.setItem('user_session', JSON.stringify(userData.user));
-                return true;
+                return { success: true };
+            } else {
+                const errorData = await response.json();
+                return { success: false, error: errorData.error || 'Registration failed' };
             }
-            return false;
         } catch (error) {
             console.error('Registration error:', error);
-            return false;
+            return { success: false, error: 'Network error. Please try again.' };
         }
     },
     

@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, ShoppingCart, Map, MessageCircle, Zap } from 'lucide-react';
+import { FileText, ShoppingCart, Map, MessageCircle, Zap, User, LogOut, Wallet, Music, Trophy } from 'lucide-react';
+import { AuthModal } from '../components/AuthModal';
+import { Leaderboard } from '../components/Leaderboard';
+import { useAuthStore } from '../lib/stores/useWallet';
 
 const backgroundImage = '/images/AAA_capybara_wetland_background_ab88ce49.png';
-const heroImage = '/images/custom_capybara.png';
+const heroImage = '/images/AAA_capybara_hero_character_0a40b727.png';
 const barrierImage = '/images/AAA_magical_barrier_UI_b6d0d11f.png';
 
 const FloatingParticle: React.FC<{ delay: number }> = ({ delay }) => (
@@ -42,11 +45,15 @@ const GlowingText: React.FC<{ children: React.ReactNode; className?: string }> =
 
 interface LandingPageProps {
   onEnterGame: () => void;
+  onEnterAdventure?: () => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onEnterGame }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onEnterGame, onEnterAdventure }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [particles, setParticles] = useState<number[]>([]);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const { user, isLoggedIn, logout } = useAuthStore();
 
   useEffect(() => {
     // Generate floating particles
@@ -69,6 +76,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterGame }) => {
 
   const handleTelegram = () => {
     window.open('https://t.me/SaveCapybaraBot', '_blank');
+  };
+
+  const handleTikTok = () => {
+    window.open('https://www.tiktok.com/@capybarahouse.t', '_blank');
   };
 
   return (
@@ -104,97 +115,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterGame }) => {
       />
 
       {/* Main Content */}
-      <div className="relative z-10 text-center max-w-4xl mx-auto px-6">
-        {/* Hero Section */}
+      <div className="relative z-10 text-center max-w-6xl mx-auto px-6">
+        
+        {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="mb-12"
+          className="mb-8"
         >
-          {/* Hero character */}
-          <motion.div
-            initial={{ y: -100, opacity: 0, rotate: -10 }}
-            animate={{ y: 0, opacity: 1, rotate: 0 }}
-            transition={{ 
-              duration: 1.5, 
-              delay: 0.2,
-              type: "spring",
-              stiffness: 100,
-              damping: 10
-            }}
-            whileHover={{ 
-              scale: 1.05,
-              rotate: 2,
-              transition: { duration: 0.3 }
-            }}
-            className="mb-8 relative flex justify-center"
+          <GlowingText className="text-5xl md:text-6xl font-bold text-white mb-4 leading-tight font-serif">
+            CAPYBARA COIN
+          </GlowingText>
+          <motion.p 
+            className="text-xl md:text-2xl text-amber-100 font-light tracking-wide max-w-2xl mx-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-yellow-300/30 to-green-300/30 rounded-full blur-2xl scale-150" />
-            <div className="w-32 h-32 relative z-10">
-              <img 
-                src={heroImage} 
-                alt="Capybara Hero" 
-                className="w-full h-full object-contain drop-shadow-2xl"
-                style={{
-                  filter: 'drop-shadow(0 0 20px rgba(255, 235, 59, 0.3))'
-                }}
-              />
-            </div>
-            
-            {/* Floating crown effect */}
-            <motion.div
-              className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-4xl"
-              animate={{ 
-                y: [0, -10, 0],
-                rotate: [0, 5, -5, 0]
-              }}
-              transition={{ 
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
-              ✨
-            </motion.div>
-          </motion.div>
-          
-          {/* Title */}
-          <div className="mb-8">
-            <GlowingText className="text-4xl md:text-5xl font-bold text-white mb-2 leading-tight font-serif">
-              SAVE THE
-            </GlowingText>
-            <GlowingText className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 bg-clip-text text-transparent leading-tight font-serif">
-              CAPYBARA
-            </GlowingText>
-            <motion.p 
-              className="text-lg md:text-xl text-amber-100 mt-4 font-light tracking-wide max-w-xl mx-auto"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.6 }}
-            >
-              Master the Ancient Art of Protective Drawing on Solana
-            </motion.p>
-          </div>
+            Epic Island-Hopping Adventure with Play-to-Earn Rewards
+          </motion.p>
+        </motion.div>
 
-          {/* Main Enter Button */}
-          <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ 
-              delay: 0.8, 
-              duration: 0.8,
-              type: "spring",
-              stiffness: 200,
-              damping: 15
-            }}
-            className="mb-12"
-          >
+        {/* Primary Actions Section */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="mb-10"
+        >
+          {/* Main Game Button */}
+          <div className="mb-6">
             <Button
               onClick={onEnterGame}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
-              className="relative group bg-gradient-to-r from-emerald-500 via-green-600 to-emerald-500 hover:from-emerald-400 hover:via-green-500 hover:to-emerald-400 text-white font-bold px-12 py-4 text-xl rounded-2xl shadow-2xl hover:shadow-emerald-500/50 border-2 border-emerald-400 transition-all duration-300 transform hover:scale-110 active:scale-95 overflow-hidden"
+              className="relative group bg-gradient-to-r from-emerald-500 via-green-600 to-emerald-500 hover:from-emerald-400 hover:via-green-500 hover:to-emerald-400 text-white font-bold px-16 py-8 text-2xl rounded-3xl shadow-2xl hover:shadow-emerald-500/50 border-2 border-emerald-400 transition-all duration-300 transform hover:scale-110 active:scale-95 overflow-hidden"
+              data-testid="button-start-capirush"
             >
               {/* Button glow effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-green-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl" />
@@ -208,95 +165,183 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterGame }) => {
                 } : {}}
               />
               
-              <span className="relative z-10 flex items-center gap-3">
-                <span className="text-3xl">⚔️</span>
-                <span>ENTER QUEST</span>
+              <span className="relative z-10 flex items-center gap-4">
+                <span className="text-3xl">🐹</span>
+                <span className="text-3xl">ENTER</span>
                 <span className="text-3xl">✨</span>
               </span>
             </Button>
-          </motion.div>
+          </div>
+
+          {/* Connect Wallet */}
+          <div className="flex justify-center">
+            {isLoggedIn ? (
+              <Card className="bg-gradient-to-r from-violet-500/20 to-purple-600/20 backdrop-blur-md border-violet-400/40 hover:border-violet-300/60 transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-violet-500/25">
+                <CardContent className="px-8 py-4">
+                  <Button
+                    onClick={logout}
+                    variant="ghost"
+                    className="text-violet-100 hover:text-white flex items-center gap-3 h-auto p-3 text-lg font-semibold"
+                  >
+                    <User className="h-6 w-6" />
+                    <span>Welcome, {user?.username || 'Player'}!</span>
+                    <LogOut className="h-5 w-5 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="bg-gradient-to-r from-violet-500/20 to-purple-600/20 backdrop-blur-md border-violet-400/40 hover:border-violet-300/60 transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-violet-500/25">
+                <CardContent className="px-8 py-4">
+                  <Button
+                    onClick={() => setShowAuthModal(true)}
+                    variant="ghost"
+                    className="text-violet-100 hover:text-white flex items-center gap-3 h-auto p-3 text-lg font-semibold"
+                  >
+                    <Wallet className="h-6 w-6" />
+                    <span>Connect Wallet</span>
+                    <Zap className="h-5 w-5 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </motion.div>
 
+        {/* Game Description */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.0, duration: 0.6 }}
+          className="mb-8 max-w-2xl mx-auto"
+        >
+          <div className="bg-emerald-900/20 backdrop-blur-sm rounded-xl p-6 border border-emerald-500/30">
+            <h4 className="text-emerald-300 font-semibold text-xl mb-3">🎮 Master precision jumping through endless floating islands</h4>
+            <p className="text-emerald-100/80 text-base leading-relaxed">
+              Guide our beloved capybara through mystical landscapes! Collect coins, dodge obstacles, and earn crypto rewards!
+            </p>
+          </div>
+        </motion.div>
 
-        {/* Navigation Buttons */}
+        {/* Navigation Grid */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1.2 }}
-          className="flex flex-wrap justify-center gap-4"
+          className="mb-8"
         >
-          {/* Whitepaper Button */}
-          <Card className="bg-amber-900/20 backdrop-blur-md border-amber-500/30 hover:bg-amber-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
-            <CardContent className="p-4">
-              <Button
-                onClick={handleWhitepaper}
-                variant="ghost"
-                className="text-amber-100 hover:text-amber-300 flex flex-col items-center gap-2 h-auto p-3"
-              >
-                <FileText className="h-6 w-6" />
-                <span className="text-sm font-semibold">Whitepaper</span>
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-4xl mx-auto">
+            {/* Whitepaper Button */}
+            <Card className="bg-amber-900/20 backdrop-blur-md border-amber-500/30 hover:bg-amber-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
+              <CardContent className="p-4">
+                <Button
+                  onClick={handleWhitepaper}
+                  variant="ghost"
+                  className="text-amber-100 hover:text-amber-300 flex flex-col items-center gap-2 h-auto p-3 w-full"
+                >
+                  <FileText className="h-6 w-6" />
+                  <span className="text-sm font-semibold">Whitepaper</span>
+                </Button>
+              </CardContent>
+            </Card>
 
-          {/* Buy Button */}
-          <Card className="bg-emerald-900/20 backdrop-blur-md border-emerald-500/30 hover:bg-emerald-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
-            <CardContent className="p-4">
-              <Button
-                onClick={handleBuy}
-                variant="ghost"
-                className="text-emerald-100 hover:text-emerald-300 flex flex-col items-center gap-2 h-auto p-3"
-              >
-                <ShoppingCart className="h-6 w-6" />
-                <span className="text-sm font-semibold">Buy $CAPY</span>
-              </Button>
-            </CardContent>
-          </Card>
+            {/* Buy Button */}
+            <Card className="bg-emerald-900/20 backdrop-blur-md border-emerald-500/30 hover:bg-emerald-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
+              <CardContent className="p-4">
+                <Button
+                  onClick={handleBuy}
+                  variant="ghost"
+                  className="text-emerald-100 hover:text-emerald-300 flex flex-col items-center gap-2 h-auto p-3 w-full"
+                >
+                  <ShoppingCart className="h-6 w-6" />
+                  <span className="text-sm font-semibold">Buy CAPYBARA</span>
+                </Button>
+              </CardContent>
+            </Card>
 
-          {/* Roadmap Button */}
-          <Card className="bg-purple-900/20 backdrop-blur-md border-purple-500/30 hover:bg-purple-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
-            <CardContent className="p-4">
-              <Button
-                onClick={handleRoadmap}
-                variant="ghost"
-                className="text-purple-100 hover:text-purple-300 flex flex-col items-center gap-2 h-auto p-3"
-              >
-                <Map className="h-6 w-6" />
-                <span className="text-sm font-semibold">Roadmap</span>
-              </Button>
-            </CardContent>
-          </Card>
+            {/* Roadmap Button */}
+            <Card className="bg-purple-900/20 backdrop-blur-md border-purple-500/30 hover:bg-purple-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
+              <CardContent className="p-4">
+                <Button
+                  onClick={handleRoadmap}
+                  variant="ghost"
+                  className="text-purple-100 hover:text-purple-300 flex flex-col items-center gap-2 h-auto p-3 w-full"
+                >
+                  <Map className="h-6 w-6" />
+                  <span className="text-sm font-semibold">Roadmap</span>
+                </Button>
+              </CardContent>
+            </Card>
 
-          {/* Telegram Button */}
-          <Card className="bg-blue-900/20 backdrop-blur-md border-blue-500/30 hover:bg-blue-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
-            <CardContent className="p-4">
-              <Button
-                onClick={handleTelegram}
-                variant="ghost"
-                className="text-blue-100 hover:text-blue-300 flex flex-col items-center gap-2 h-auto p-3"
-              >
-                <MessageCircle className="h-6 w-6" />
-                <span className="text-sm font-semibold">Telegram Bot</span>
-              </Button>
-            </CardContent>
-          </Card>
+            {/* Telegram Button */}
+            <Card className="bg-blue-900/20 backdrop-blur-md border-blue-500/30 hover:bg-blue-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
+              <CardContent className="p-4">
+                <Button
+                  onClick={handleTelegram}
+                  variant="ghost"
+                  className="text-blue-100 hover:text-blue-300 flex flex-col items-center gap-2 h-auto p-3 w-full"
+                >
+                  <MessageCircle className="h-6 w-6" />
+                  <span className="text-sm font-semibold">Telegram Bot</span>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* TikTok Button */}
+            <Card className="bg-pink-900/20 backdrop-blur-md border-pink-500/30 hover:bg-pink-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
+              <CardContent className="p-4">
+                <Button
+                  onClick={handleTikTok}
+                  variant="ghost"
+                  className="text-pink-100 hover:text-pink-300 flex flex-col items-center gap-2 h-auto p-3 w-full"
+                >
+                  <Music className="h-6 w-6" />
+                  <span className="text-sm font-semibold">TikTok</span>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Leaderboard Button */}
+            <Card className="bg-yellow-900/20 backdrop-blur-md border-yellow-500/30 hover:bg-yellow-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
+              <CardContent className="p-4">
+                <Button
+                  onClick={() => setShowLeaderboard(true)}
+                  variant="ghost"
+                  className="text-yellow-100 hover:text-yellow-300 flex flex-col items-center gap-2 h-auto p-3 w-full"
+                >
+                  <Trophy className="h-6 w-6" />
+                  <span className="text-sm font-semibold">Leaderboard</span>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </motion.div>
 
-        {/* Instructions */}
+        {/* Footer Instructions */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5, duration: 0.6 }}
-          className="mt-8 text-center text-amber-100/80"
+          className="text-center text-amber-100/60"
         >
-          <p className="text-lg font-light tracking-wide">
-            Draw magical barriers with your cursor or finger
-          </p>
-          <p className="text-sm mt-2 text-amber-200/60">
-            Connect Solana wallet • Play • Earn • Repeat
+          <p className="text-base font-light tracking-wide">
+            Connect Solana wallet • Jump • Survive • Earn CAPYBARA
           </p>
         </motion.div>
       </div>
+      
+      {/* Authentication Modal */}
+      {showAuthModal && (
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+        />
+      )}
+
+      {/* Leaderboard Modal */}
+      <Leaderboard
+        isVisible={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
+      />
       
       <style>{`
         @keyframes pulse {

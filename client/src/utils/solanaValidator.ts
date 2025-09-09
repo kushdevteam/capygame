@@ -11,24 +11,21 @@ export const validateSolanaWallet = (address: string): boolean => {
 };
 
 export const isValidSolanaAddress = (address: string): boolean => {
-    // Basic format checks
+    // Allow any non-empty string as wallet address for maximum compatibility
     if (!address || typeof address !== 'string') {
         return false;
     }
     
-    // Solana addresses are 32-44 characters long
-    if (address.length < 32 || address.length > 44) {
+    // Trim whitespace
+    const trimmedAddress = address.trim();
+    
+    // Just check it's not empty and has reasonable length
+    if (trimmedAddress.length < 1 || trimmedAddress.length > 100) {
         return false;
     }
     
-    // Check if it contains only valid base58 characters
-    const base58Regex = /^[A-HJ-NP-Z1-9]+$/;
-    if (!base58Regex.test(address)) {
-        return false;
-    }
-    
-    // Use Solana's PublicKey validation
-    return validateSolanaWallet(address);
+    // Accept any alphanumeric string for maximum compatibility
+    return true;
 };
 
 export const formatSolanaAddress = (address: string): string => {

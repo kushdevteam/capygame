@@ -6,6 +6,42 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Configure Unity WebGL compression support
+app.use((req, res, next) => {
+  const url = req.url;
+  
+  // Handle Unity WebGL compressed files (both .br and .unityweb)
+  if (url.endsWith('.data.br') || url.endsWith('.data.unityweb')) {
+    res.set('Content-Type', 'application/octet-stream');
+    if (url.endsWith('.br')) {
+      res.set('Content-Encoding', 'br');
+    }
+  } else if (url.endsWith('.js.br') || url.endsWith('.js.unityweb')) {
+    res.set('Content-Type', 'application/javascript');
+    if (url.endsWith('.br')) {
+      res.set('Content-Encoding', 'br');
+    }
+  } else if (url.endsWith('.wasm.br') || url.endsWith('.wasm.unityweb')) {
+    res.set('Content-Type', 'application/wasm');
+    if (url.endsWith('.br')) {
+      res.set('Content-Encoding', 'br');
+    }
+  }
+  
+  // Ensure .unityweb files get proper content types even if not matched above
+  if (url.includes('.unityweb')) {
+    if (url.includes('.data.')) {
+      res.set('Content-Type', 'application/octet-stream');
+    } else if (url.includes('.framework.js.') || url.includes('.js.')) {
+      res.set('Content-Type', 'application/javascript');
+    } else if (url.includes('.wasm.')) {
+      res.set('Content-Type', 'application/wasm');
+    }
+  }
+  
+  next();
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;

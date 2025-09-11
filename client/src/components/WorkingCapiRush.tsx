@@ -42,6 +42,9 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
     slide: false
   });
   
+  // Track game start time for play duration
+  const [gameStartTime, setGameStartTime] = useState(Date.now());
+  
   // AI-generated game images
   const [gameImages, setGameImages] = useState<{[key: string]: HTMLImageElement}>({});
   const [imagesLoaded, setImagesLoaded] = useState(false);
@@ -81,7 +84,8 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
   const gameState = useRef({
     player: { 
       x: 100, y: 420, width: 40, height: 30, vy: 0, onGround: true,
-      speed: 5, doubleJumpAvailable: false, isSliding: false
+      speed: 5, doubleJumpAvailable: false, isSliding: false,
+      jumpCooldown: 0, jumpKeyPressed: false
     },
     obstacles: [
       { x: 600, y: 420, width: 30, height: 30, color: '#FF0000', type: 'normal', passed: false, vy: 0 },
@@ -138,19 +142,32 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
         (window as any).TelegramWebApp.MainButton.hide();
         (window as any).TelegramWebApp.expand();
         
-        // Force image reload in Telegram WebView
+        // Enhanced image reload for Telegram and mobile WebViews
         setTimeout(() => {
           const images = Object.values(gameImages);
           images.forEach(img => {
             if (img && img.src) {
-              const newSrc = img.src + '?t=' + Date.now();
+              // Force cache clearing and reload
+              const newSrc = img.src.split('?')[0] + '?v=' + Date.now() + '&mobile=1';
               img.src = newSrc;
+              // Also trigger a second reload for stubborn caches
+              setTimeout(() => {
+                if (img && !img.complete) {
+                  img.src = img.src + '&retry=1';
+                }
+              }, 500);
             }
           });
-        }, 1000);
+          
+          // Force a canvas redraw after image reload
+          setTimeout(() => {
+            // Trigger reload of game textures if game is running
+            setGameImages(prev => ({ ...prev }));
+          }, 2000);
+        }, 1500);
       }
       
-      // Prevent zoom on mobile
+      // Optimize for mobile and Telegram
       if (isMobileDevice) {
         const viewport = document.querySelector('meta[name=viewport]');
         if (viewport) {
@@ -161,6 +178,16 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
           newViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
           document.head.appendChild(newViewport);
         }
+        
+        // Disable image caching for mobile WebViews
+        document.addEventListener('DOMContentLoaded', () => {
+          const images = document.querySelectorAll('img');
+          images.forEach(img => {
+            if (img.src && !img.src.includes('?v=')) {
+              img.src = img.src + '?v=' + Date.now();
+            }
+          });
+        });
       }
     };
     checkMobile();
@@ -686,6 +713,39 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         ctx.fill();
+      } else if (particle.type === 'gold_coin') {
+        // Gold coin with special animation and glow
+        ctx.shadowColor = '#FFD700';
+        ctx.shadowBlur = 8;
+        
+        // Outer gold rim
+        ctx.fillStyle = '#FFA500';
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Inner gold center
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size * 0.7, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Sparkle highlight
+        ctx.fillStyle = '#FFFFFF';
+        ctx.globalAlpha = particle.alpha * 0.8;
+        ctx.beginPath();
+        ctx.arc(particle.x - particle.size * 0.3, particle.y - particle.size * 0.3, particle.size * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Dollar sign (if coin is big enough)
+        if (particle.size > 6) {
+          ctx.fillStyle = '#B8860B';
+          ctx.globalAlpha = particle.alpha;
+          ctx.font = `bold ${particle.size}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('$', particle.x, particle.y);
+        }
       } else {
         // Standard rectangular particle
         ctx.fillStyle = particle.color;
@@ -863,8 +923,9 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
     const handleKeyDown = (e: KeyboardEvent) => {
       gameState.current.keys[e.key.toLowerCase()] = true;
       
-      // Jump or double jump
-      if (e.key.toLowerCase() === 'w' || e.key === ' ') {
+      // Jump or double jump - ANTI-CHEAT: Only allow jump on initial keypress, not while held
+      if ((e.key.toLowerCase() === 'w' || e.key === ' ') && !gameState.current.player.jumpKeyPressed) {
+        gameState.current.player.jumpKeyPressed = true;
         handleJump();
       }
       
@@ -877,13 +938,19 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
     };
 
     const handleJump = () => {
+      // ANTI-CHEAT: Jump cooldown to prevent rapid spamming
+      if (gameState.current.player.jumpCooldown > 0) return;
+      
       if (gameState.current.player.onGround) {
         gameState.current.player.vy = -12;
         gameState.current.player.onGround = false;
         gameState.current.player.doubleJumpAvailable = gameState.current.effects.doubleJump;
+        gameState.current.player.jumpCooldown = 10; // 10 frames cooldown
+        
       } else if (gameState.current.player.doubleJumpAvailable) {
         gameState.current.player.vy = -10;
         gameState.current.player.doubleJumpAvailable = false;
+        gameState.current.player.jumpCooldown = 15; // Longer cooldown for double jump
         // Add double jump particles
         for (let i = 0; i < 5; i++) {
           gameState.current.particles.push({
@@ -910,6 +977,11 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
     const handleKeyUp = (e: KeyboardEvent) => {
       gameState.current.keys[e.key.toLowerCase()] = false;
       
+      // ANTI-CHEAT: Reset jump key pressed flag when W or Space is released
+      if (e.key.toLowerCase() === 'w' || e.key === ' ') {
+        gameState.current.player.jumpKeyPressed = false;
+      }
+      
       // Stop sliding
       if (e.key.toLowerCase() === 's' || e.code === 'ArrowDown') {
         handleSlideEnd();
@@ -921,12 +993,17 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
-    // Game loop
-    const render = () => {
+    // Game loop with delta time for consistent speed across all devices
+    let lastTime = performance.now();
+    const render = (currentTime: number = performance.now()) => {
       if (isPaused) {
         gameLoopRef.current = requestAnimationFrame(render);
         return;
       }
+
+      // Calculate delta time (time between frames) for consistent speed
+      const deltaTime = Math.min((currentTime - lastTime) / 16.67, 2); // Normalize to 60 FPS, cap at 2x
+      lastTime = currentTime;
 
       const state = gameState.current;
 
@@ -997,15 +1074,21 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
       }
       ctx.globalAlpha = 1;
 
-      // Update player physics
+      // ANTI-CHEAT: Update jump cooldown
+      if (state.player.jumpCooldown > 0) {
+        state.player.jumpCooldown -= deltaTime;
+      }
+
+      // Update player physics with delta time normalization
       if (!state.player.onGround) {
-        state.player.vy += 0.8; // gravity
-        state.player.y += state.player.vy;
+        state.player.vy += 0.8 * deltaTime; // gravity normalized to delta time
+        state.player.y += state.player.vy * deltaTime;
         
         if (state.player.y >= 420) {
           state.player.y = 420;
           state.player.vy = 0;
           state.player.onGround = true;
+          state.player.jumpKeyPressed = false; // Reset jump key when landing
         }
       }
 
@@ -1030,24 +1113,24 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
         }
       }
 
-      // Update power-up effects with enhanced logic
-      if (state.effects.speedBoost > 0) state.effects.speedBoost--;
-      if (state.effects.invincibility > 0) state.effects.invincibility--;
-      if (state.effects.coinMagnet > 0) state.effects.coinMagnet--;
-      if (state.effects.shield > 0) state.effects.shield--;
-      if (state.effects.slowMotion > 0) state.effects.slowMotion--;
-      if (state.effects.dash > 0) state.effects.dash--;
-      if (state.effects.tripleJump > 0) state.effects.tripleJump--;
+      // Update power-up effects with delta time normalization
+      if (state.effects.speedBoost > 0) state.effects.speedBoost -= deltaTime;
+      if (state.effects.invincibility > 0) state.effects.invincibility -= deltaTime;
+      if (state.effects.coinMagnet > 0) state.effects.coinMagnet -= deltaTime;
+      if (state.effects.shield > 0) state.effects.shield -= deltaTime;
+      if (state.effects.slowMotion > 0) state.effects.slowMotion -= deltaTime;
+      if (state.effects.dash > 0) state.effects.dash -= deltaTime;
+      if (state.effects.tripleJump > 0) state.effects.tripleJump -= deltaTime;
       if (state.effects.coinMultiplier.active && state.effects.coinMultiplier.duration > 0) {
-        state.effects.coinMultiplier.duration--;
+        state.effects.coinMultiplier.duration -= deltaTime;
         if (state.effects.coinMultiplier.duration <= 0) {
           state.effects.coinMultiplier.active = false;
           state.effects.coinMultiplier.multiplier = 1;
         }
       }
 
-      // Player movement with speed boost (keyboard + touch)
-      const moveSpeed = state.effects.speedBoost > 0 ? 8 : 5;
+      // Player movement with speed boost (keyboard + touch) - normalized to delta time
+      const moveSpeed = (state.effects.speedBoost > 0 ? 8 : 5) * deltaTime;
       if (state.keys['a'] || state.keys['arrowleft'] || touchControls.left) {
         state.player.x = Math.max(0, state.player.x - moveSpeed);
       }
@@ -1095,8 +1178,8 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
         playSound('hit'); // Boss arrival sound
       }
 
-      // Update and draw obstacles with dynamic speed
-      const obstacleSpeed = 3 * state.gameSpeed * (state.effects.slowMotion > 0 ? 0.5 : 1);
+      // Update and draw obstacles with dynamic speed - normalized to delta time
+      const obstacleSpeed = 3 * state.gameSpeed * (state.effects.slowMotion > 0 ? 0.5 : 1) * deltaTime;
       state.obstacles.forEach((obstacle, index) => {
         obstacle.x -= obstacleSpeed;
         
@@ -1127,6 +1210,67 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
             playerY < obstacle.y + obstacle.height &&
             playerY + playerHeight > obstacle.y) {
           
+          // Special handling for energy barriers - can land on top safely!
+          if (obstacle.type === 'energy') {
+            const isLandingOnTop = state.player.vy > 0 && // Player is falling down
+                                   playerY + playerHeight <= obstacle.y + 8; // Landing on top (with small tolerance)
+            
+            if (isLandingOnTop) {
+              // Safe landing on energy barrier!
+              state.player.y = obstacle.y - state.player.height;
+              state.player.vy = 0;
+              state.player.onGround = true;
+              state.player.doubleJumpAvailable = false; // Don't restore double jump to prevent flying
+              state.player.jumpKeyPressed = false; // Reset jump key when landing
+              state.player.jumpCooldown = 5; // Small cooldown to prevent immediate jump
+              
+              // Add bonus points for skillful landing
+              state.score += 50;
+              
+              // Add landing particles effect
+              for (let i = 0; i < 8; i++) {
+                state.particles.push({
+                  x: state.player.x + Math.random() * 40,
+                  y: state.player.y + 30,
+                  size: 3,
+                  color: '#00FFFF', // Cyan particles for energy landing
+                  alpha: 1,
+                  vy: -(Math.random() * 4 + 2),
+                  life: 40
+                });
+              }
+              
+              // Add gold coin rain effect!
+              for (let i = 0; i < 12; i++) {
+                state.particles.push({
+                  x: state.player.x + 20 + (Math.random() - 0.5) * 80, // Spread coins around player
+                  y: state.player.y - 50 - Math.random() * 30, // Start above player
+                  size: 6 + Math.random() * 4, // Varying coin sizes
+                  color: '#FFD700', // Gold color
+                  alpha: 1,
+                  vy: Math.random() * 2 + 1, // Fall down onto capybara
+                  vx: (Math.random() - 0.5) * 2, // Slight horizontal drift
+                  life: 80,
+                  type: 'gold_coin' // Special type for coin animation
+                });
+              }
+              
+              // Play success sound
+              try {
+                if (audioRef.current.powerUp && audioEnabled) {
+                  audioRef.current.powerUp.currentTime = 0;
+                  audioRef.current.powerUp.volume = (soundVolume / 100) * 0.6;
+                  audioRef.current.powerUp.play().catch(() => console.log('Sound play failed'));
+                }
+              } catch (error) {
+                console.warn('Sound play failed:', error);
+              }
+              
+              return; // Don't end game, continue to next obstacle
+            }
+          }
+          
+          // All other collisions end the game
           // Break combo
           state.combo = 0;
           state.combo_multiplier = 1;
@@ -1192,7 +1336,7 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
 
       // Update and draw power-ups
       state.powerUps.forEach((powerUp, index) => {
-        powerUp.x -= 3;
+        powerUp.x -= 3 * deltaTime;
         
         if (powerUp.x < -20) {
           state.powerUps.splice(index, 1);
@@ -1253,7 +1397,7 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
 
       // Enhanced coin collection with multiplier
       state.coins.forEach((coin, index) => {
-        const coinSpeed = 3 * state.gameSpeed * (state.effects.slowMotion > 0 ? 0.5 : 1);
+        const coinSpeed = 3 * state.gameSpeed * (state.effects.slowMotion > 0 ? 0.5 : 1) * deltaTime;
         coin.x -= coinSpeed;
         
         // Coin magnet effect
@@ -1300,11 +1444,12 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
         }
       });
 
-      // Update and draw particles
+      // Update and draw particles with delta time normalization
       state.particles.forEach((particle, index) => {
-        particle.life--;
-        particle.alpha = particle.life / 40;
-        particle.y -= particle.vy;
+        particle.life -= deltaTime;
+        particle.alpha = particle.life / (particle.type === 'gold_coin' ? 80 : 40);
+        particle.y += (particle.vy || 0) * deltaTime;
+        if (particle.vx) particle.x += particle.vx * deltaTime;
         
         if (particle.life <= 0) {
           state.particles.splice(index, 1);
@@ -1322,7 +1467,8 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
           height: 30,
           color: ['#FF0000', '#00FF00', '#0000FF'][Math.floor(Math.random() * 3)],
           type: 'normal',
-          passed: false
+          passed: false,
+          vy: -2
         });
       }
 
@@ -1455,17 +1601,48 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
       gameLoopRef.current = requestAnimationFrame(render);
     };
 
-    const endGame = () => {
+    const endGame = async () => {
       setIsGameRunning(false);
-      const newHighScore = Math.max(gameStats.highScore, gameState.current.score);
+      const finalScore = gameState.current.score;
+      const newHighScore = Math.max(gameStats.highScore, finalScore);
       const newStats = {
-        score: gameState.current.score,
+        score: finalScore,
         highScore: newHighScore,
         gamesPlayed: gameStats.gamesPlayed + 1
       };
       
       setGameStats(newStats);
       localStorage.setItem('capirush-stats', JSON.stringify(newStats));
+      
+      // Submit score to backend - try with wallet first, fallback to anonymous
+      try {
+        const walletAddress = localStorage.getItem('userWalletAddress');
+        if (finalScore > 0) {
+          // If no wallet, create anonymous user entry
+          const submitAddress = walletAddress || `anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          const response = await fetch('/api/submit-score', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              walletAddress: submitAddress,
+              level: gameLevel,
+              score: finalScore,
+              completed: false, // This is an endless runner, so games don't get "completed"
+              playTimeSeconds: Math.floor((Date.now() - gameStartTime) / 1000)
+            }),
+          });
+
+          if (response.ok) {
+            console.log('Score submitted successfully!');
+          } else {
+            console.log('Failed to submit score:', response.statusText);
+          }
+        }
+      } catch (error) {
+        console.error('Error submitting score:', error);
+      }
       
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
@@ -1488,25 +1665,32 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
     if (!isGameRunning) return;
     
     if (touchControls.jump) {
-      // Trigger jump
-      if (gameState.current.player.onGround) {
-        gameState.current.player.vy = -12;
-        gameState.current.player.onGround = false;
-        gameState.current.player.doubleJumpAvailable = gameState.current.effects.doubleJump;
-      } else if (gameState.current.player.doubleJumpAvailable) {
-        gameState.current.player.vy = -10;
-        gameState.current.player.doubleJumpAvailable = false;
-        // Add double jump particles
-        for (let i = 0; i < 5; i++) {
-          gameState.current.particles.push({
-            x: gameState.current.player.x + Math.random() * 40,
-            y: gameState.current.player.y + 30,
-            size: 3,
-            color: '#32CD32',
-            alpha: 1,
-            vy: Math.random() * 3 + 1,
-            life: 30
-          });
+      // ANTI-CHEAT: Use centralized jump function with cooldown protection
+      // ANTI-CHEAT: Check jump cooldown and key pressed flag
+      if (gameState.current.player.jumpCooldown <= 0 && !gameState.current.player.jumpKeyPressed) {
+        gameState.current.player.jumpKeyPressed = true; // Set flag to prevent rapid tapping
+        
+        if (gameState.current.player.onGround) {
+          gameState.current.player.vy = -12;
+          gameState.current.player.onGround = false;
+          gameState.current.player.doubleJumpAvailable = gameState.current.effects.doubleJump;
+          gameState.current.player.jumpCooldown = 10; // 10 frames cooldown
+        } else if (gameState.current.player.doubleJumpAvailable) {
+          gameState.current.player.vy = -10;
+          gameState.current.player.doubleJumpAvailable = false;
+          gameState.current.player.jumpCooldown = 15; // Longer cooldown for double jump
+          // Add double jump particles
+          for (let i = 0; i < 5; i++) {
+            gameState.current.particles.push({
+              x: gameState.current.player.x + Math.random() * 40,
+              y: gameState.current.player.y + 30,
+              size: 3,
+              color: '#32CD32',
+              alpha: 1,
+              vy: Math.random() * 3 + 1,
+              life: 30
+            });
+          }
         }
       }
       setTouchControls(prev => ({ ...prev, jump: false })); // Reset jump after action
@@ -1521,36 +1705,31 @@ export const WorkingCapiRush: React.FC<WorkingCapiRushProps> = ({ onBackToMenu }
 
   // Twitter sharing function
   const shareToTwitter = (score: number) => {
-    const tweetText = `🐹 Just scored ${score} points in CAPYBARA COIN! 🎮✨
+    const tweetText = `🐹 Just scored ${score} points in CAPYBARA COIN! 
 
-🚀 Features that got me hooked:
-• AI-generated graphics
-• Progressive difficulty 
-• Epic power-ups & achievements
-• Real crypto rewards!
+🎮 Endless runner with crypto rewards
+💰 Play & earn real value!
 
-Think you can beat my score? 👇
-
-🎮 Play: @capybaracoingamebot
-🐦 Follow: @CapybaraCoin
-💬 Join: t.me/CapybaraCoinGame
-
-#CapybaraCoin #CryptoGaming #Web3Gaming #TelegramGames`;
+Play: @capybaracoingamebot
+#CapybaraCoin #CryptoGaming`;
 
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
     window.open(twitterUrl, '_blank', 'width=550,height=420');
   };
 
   const startGame = () => {
+    // Track game start time
+    setGameStartTime(Date.now());
     // Reset game state
     gameState.current = {
       player: { 
         x: 100, y: 420, width: 40, height: 30, vy: 0, onGround: true,
-        speed: 5, doubleJumpAvailable: false, isSliding: false
+        speed: 5, doubleJumpAvailable: false, isSliding: false,
+        jumpCooldown: 0, jumpKeyPressed: false
       },
       obstacles: [
-        { x: 600, y: 420, width: 30, height: 30, color: '#FF0000', type: 'spike', passed: false },
-        { x: 800, y: 420, width: 30, height: 30, color: '#00FF00', type: 'energy', passed: false }
+        { x: 600, y: 420, width: 30, height: 30, color: '#FF0000', type: 'spike', passed: false, vy: -2 },
+        { x: 800, y: 420, width: 30, height: 30, color: '#00FF00', type: 'energy', passed: false, vy: -2 }
       ],
       powerUps: [],
       coins: [],
@@ -1815,9 +1994,14 @@ Think you can beat my score? 👇
                         }}
                         onTouchEnd={(e) => {
                           e.preventDefault();
+                          // ANTI-CHEAT: Reset jump key flag when touch ends
+                          gameState.current.player.jumpKeyPressed = false;
                         }}
                         onMouseDown={() => setTouchControls(prev => ({ ...prev, jump: true }))}
-                        onMouseUp={() => {}}
+                        onMouseUp={() => {
+                          // ANTI-CHEAT: Reset jump key flag when mouse up
+                          gameState.current.player.jumpKeyPressed = false;
+                        }}
                       >
                         ↑
                       </Button>
@@ -1829,9 +2013,9 @@ Think you can beat my score? 👇
           )}
         </div>
 
-        {/* Wallet Connection Reminder */}
+        {/* Wallet Connection Reminder - Extra spacing on mobile */}
         {!isGameRunning && (
-          <div className="mt-6 bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm rounded-lg p-4 border border-amber-400/40">
+          <div className={`${isMobile ? 'mt-24' : 'mt-6'} bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm rounded-lg p-4 border border-amber-400/40`}>
             <div className="flex items-center gap-3 mb-2">
               <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
               <h3 className="text-lg font-semibold text-amber-100">💰 Save Your Progress!</h3>
@@ -1842,8 +2026,8 @@ Think you can beat my score? 👇
           </div>
         )}
 
-        {/* Instructions */}
-        <div className="mt-10 bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/30">
+        {/* Instructions - Extra spacing on mobile to avoid control overlap */}
+        <div className={`${isMobile ? 'mt-32' : 'mt-10'} bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/30`}>
           <h3 className="text-lg font-semibold text-white mb-2">How to Play:</h3>
           <div className="text-white/80 space-y-1">
             {isMobile ? (

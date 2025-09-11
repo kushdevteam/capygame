@@ -4,7 +4,6 @@ import { WalletProvider } from './components/WalletProvider';
 import { WorkingCapiRush } from './components/WorkingCapiRush';
 import { LandingPage } from './pages/LandingPage';
 import { Whitepaper } from './pages/Whitepaper';
-import { Roadmap } from './pages/Roadmap';
 import { GamePage } from './pages/Game';
 import './index.css';
 
@@ -25,8 +24,6 @@ function App() {
         {/* Whitepaper route - opens in new window */}
         <Route path="/whitepaper" element={<Whitepaper />} />
         
-        {/* Roadmap route - opens in new window */}
-        <Route path="/roadmap" element={<Roadmap />} />
         
         {/* Game route - New CAPYBARA COIN Infinite Runner */}
         <Route path="/game" element={

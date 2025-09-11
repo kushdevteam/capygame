@@ -20,15 +20,11 @@ import {
 // Use in-memory storage for better compatibility
 let neonClient: any = null;
 let db: any = null;
+let useDatabase = false;
 
-if (process.env.DATABASE_URL) {
-  try {
-    neonClient = neon(process.env.DATABASE_URL);
-    db = drizzle(neonClient);
-  } catch (error) {
-    console.warn('Database connection failed, using memory storage:', error);
-  }
-}
+// For development, disable database and use in-memory storage
+console.log('Using in-memory storage for development');
+useDatabase = false;
 
 export interface IStorage {
   // User management
@@ -59,6 +55,198 @@ export interface IStorage {
   
   // Admin data export
   getAirdropData(): Promise<any[]>;
+}
+
+class InMemoryStorage implements IStorage {
+  private users: User[] = [];
+  private scores: GameScore[] = [];
+  private sessions: GameSession[] = [];
+  private achievements: UserAchievement[] = [];
+  private idCounter = 1;
+
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.find(user => user.id === id);
+  }
+
+  async getUserByWallet(walletAddress: string): Promise<User | undefined> {
+    return this.users.find(user => user.walletAddress === walletAddress);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return this.users.find(user => user.username === username);
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const user: User = {
+      id: this.idCounter++,
+      ...insertUser,
+      createdAt: new Date(),
+      lastLoginAt: new Date(),
+      totalScore: 0,
+      levelsCompleted: 0,
+      highestLevel: 1,
+      gamesPlayed: 0,
+      consecutiveDays: 1,
+      totalPlayTimeMinutes: 0,
+      averageScorePerLevel: 0,
+      achievementPoints: 0,
+      isEligibleForRewards: true
+    };
+    this.users.push(user);
+    return user;
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const userIndex = this.users.findIndex(user => user.id === id);
+    if (userIndex === -1) return undefined;
+    this.users[userIndex] = { ...this.users[userIndex], ...updates };
+    return this.users[userIndex];
+  }
+
+  async updateUserStats(userId: number, stats: Partial<User>): Promise<void> {
+    const userIndex = this.users.findIndex(user => user.id === userId);
+    if (userIndex !== -1) {
+      this.users[userIndex] = { 
+        ...this.users[userIndex], 
+        ...stats, 
+        lastLoginAt: new Date() 
+      };
+    }
+  }
+
+  async submitScore(score: InsertScore): Promise<GameScore> {
+    const gameScore: GameScore = {
+      id: this.idCounter++,
+      ...score,
+      userId: score.userId!,
+      timestamp: new Date()
+    };
+    this.scores.push(gameScore);
+    await this.recalculateUserStats(score.userId!);
+    return gameScore;
+  }
+
+  private async recalculateUserStats(userId: number): Promise<void> {
+    const userScores = this.scores.filter(s => s.userId === userId);
+    const completedLevels = userScores.filter(s => s.completed).length;
+    const totalScore = userScores.reduce((sum, s) => sum + s.score, 0);
+    const highestLevel = Math.max(...userScores.map(s => s.level), 1);
+    const averageScore = userScores.length > 0 ? totalScore / userScores.length : 0;
+    
+    await this.updateUserStats(userId, {
+      totalScore,
+      levelsCompleted: completedLevels,
+      highestLevel,
+      gamesPlayed: userScores.length,
+      averageScorePerLevel: averageScore
+    });
+  }
+
+  async getUserScores(userId: number): Promise<GameScore[]> {
+    return this.scores
+      .filter(score => score.userId === userId)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return this.users;
+  }
+
+  async getTopScores(limit = 100): Promise<any[]> {
+    return this.scores
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map((score, index) => {
+        const user = this.users.find(u => u.id === score.userId);
+        return {
+          rank: index + 1,
+          username: user?.username || 'Unknown',
+          walletAddress: user?.walletAddress ? `${user.walletAddress.slice(0, 4)}...${user.walletAddress.slice(-4)}` : 'N/A',
+          score: score.score,
+          level: score.level,
+          completed: score.completed
+        };
+      });
+  }
+
+  async createSession(session: InsertSession): Promise<GameSession> {
+    const gameSession: GameSession = {
+      id: this.idCounter++,
+      ...session,
+      userId: session.userId!,
+      startTime: new Date(),
+      endTime: null
+    };
+    this.sessions.push(gameSession);
+    return gameSession;
+  }
+
+  async endSession(sessionId: number, endTime: Date): Promise<void> {
+    const sessionIndex = this.sessions.findIndex(s => s.id === sessionId);
+    if (sessionIndex !== -1) {
+      this.sessions[sessionIndex].endTime = endTime;
+    }
+  }
+
+  async getUserSessions(userId: number): Promise<GameSession[]> {
+    return this.sessions
+      .filter(session => session.userId === userId)
+      .sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+  }
+
+  async addAchievement(achievement: InsertAchievement): Promise<UserAchievement> {
+    const userAchievement: UserAchievement = {
+      id: this.idCounter++,
+      ...achievement,
+      userId: achievement.userId!,
+      unlockedAt: new Date()
+    };
+    this.achievements.push(userAchievement);
+    
+    // Update user achievement points
+    await this.updateUserStats(achievement.userId!, {
+      achievementPoints: (this.users.find(u => u.id === achievement.userId)?.achievementPoints || 0) + achievement.pointsAwarded
+    });
+    
+    return userAchievement;
+  }
+
+  async getUserAchievements(userId: number): Promise<UserAchievement[]> {
+    return this.achievements
+      .filter(achievement => achievement.userId === userId)
+      .sort((a, b) => b.unlockedAt.getTime() - a.unlockedAt.getTime());
+  }
+
+  async updateLeaderboards(): Promise<void> {
+    // In-memory doesn't need separate leaderboard storage
+    // Leaderboards are calculated on-demand
+  }
+
+  async getLeaderboard(type: 'daily' | 'weekly' | 'all_time', limit = 50): Promise<any[]> {
+    // For simplicity, return all-time leaderboard for all types in memory storage
+    return await this.getTopScores(limit);
+  }
+
+  async getAirdropData(): Promise<any[]> {
+    return this.users
+      .filter(user => user.isEligibleForRewards)
+      .sort((a, b) => b.totalScore - a.totalScore)
+      .map(user => ({
+        username: user.username,
+        walletAddress: user.walletAddress,
+        totalScore: user.totalScore,
+        levelsCompleted: user.levelsCompleted,
+        highestLevel: user.highestLevel,
+        gamesPlayed: user.gamesPlayed,
+        consecutiveDays: user.consecutiveDays,
+        totalPlayTimeMinutes: user.totalPlayTimeMinutes,
+        achievementPoints: user.achievementPoints,
+        averageScorePerLevel: user.averageScorePerLevel,
+        isEligibleForRewards: user.isEligibleForRewards,
+        createdAt: user.createdAt,
+        lastLoginAt: user.lastLoginAt
+      }));
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -285,4 +473,5 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+// Use the appropriate storage implementation based on database availability
+export const storage: IStorage = useDatabase ? new DatabaseStorage() : new InMemoryStorage();

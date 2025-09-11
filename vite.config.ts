@@ -11,7 +11,8 @@ const __dirname = dirname(__filename);
 export default defineConfig({
   plugins: [
     react(),
-    runtimeErrorOverlay(),
+    // Disable runtime error overlay in production to prevent issues in Telegram WebApp
+    ...(process.env.NODE_ENV !== 'production' ? [runtimeErrorOverlay()] : []),
     glsl(), // Add GLSL shader support
   ],
   resolve: {

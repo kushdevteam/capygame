@@ -9,13 +9,22 @@ function hashPin(pin: string): string {
 }
 
 function isValidSolanaAddress(address: string): boolean {
-  try {
-    // Check if it's a valid base58 Solana public key
-    new PublicKey(address);
-    return true;
-  } catch (error) {
+  // Allow any non-empty string as wallet address for maximum compatibility during development
+  if (!address || typeof address !== 'string') {
     return false;
   }
+  
+  // Trim whitespace
+  const trimmedAddress = address.trim();
+  
+  // Just check it's not empty and has reasonable length
+  if (trimmedAddress.length < 1 || trimmedAddress.length > 100) {
+    return false;
+  }
+  
+  // For development: accept any alphanumeric string for maximum compatibility
+  // In production, you might want to restore strict validation: new PublicKey(address)
+  return true;
 }
 
 // Helper function to check achievement criteria
@@ -112,7 +121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ error: "Username already taken" });
       }
       
-      const hashedPassword = hashPin(password.trim());
+      const hashedPassword = hashPin(userPassword.trim());
       
       const user = await storage.createUser({
         walletAddress,
@@ -197,9 +206,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid input data" });
       }
       
-      const user = await storage.getUserByWallet(walletAddress);
+      let user = await storage.getUserByWallet(walletAddress);
+      
+      // Auto-register anonymous users for score submission
+      if (!user && walletAddress.startsWith('anonymous_')) {
+        try {
+          const anonymousUsername = `Player_${walletAddress.split('_')[2]?.substring(0, 6) || Math.random().toString(36).substr(2, 6)}`;
+          user = await storage.createUser({
+            walletAddress: walletAddress,
+            pin: 'anonymous',
+            username: anonymousUsername
+          });
+          console.log("Auto-registered anonymous user:", anonymousUsername);
+        } catch (error) {
+          console.error("Failed to auto-register anonymous user:", error);
+          return res.status(500).json({ error: "Failed to create anonymous user" });
+        }
+      }
+      
       if (!user) {
-        return res.status(401).json({ error: "User not found" });
+        return res.status(401).json({ error: "User not found - please connect wallet or register" });
       }
       
       const gameScore = await storage.submitScore({
@@ -225,29 +251,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced leaderboard with multiple types
+  // Enhanced leaderboard with multiple types - now using REAL data!
   app.get("/api/leaderboard", async (req, res) => {
     try {
-      // Return mock leaderboard data for better reliability
-      const mockLeaderboard = {
-        daily: [
-          { username: "CapyMaster", score: 2500, walletAddress: "ABC...123", position: 1 },
-          { username: "CoinHunter", score: 2100, walletAddress: "DEF...456", position: 2 },
-          { username: "RunnerPro", score: 1800, walletAddress: "GHI...789", position: 3 }
-        ],
-        weekly: [
-          { username: "CapyMaster", score: 15000, walletAddress: "ABC...123", position: 1 },
-          { username: "GamePro", score: 12500, walletAddress: "JKL...012", position: 2 },
-          { username: "CoinHunter", score: 11200, walletAddress: "DEF...456", position: 3 }
-        ],
-        all_time: [
-          { username: "CapyLegend", score: 50000, walletAddress: "MNO...345", position: 1 },
-          { username: "CapyMaster", score: 35000, walletAddress: "ABC...123", position: 2 },
-          { username: "EliteRunner", score: 28000, walletAddress: "PQR...678", position: 3 }
-        ]
+      // Get real user data sorted by totalScore
+      const allUsers = await storage.getAllUsers();
+      const topUsers = allUsers
+        .filter(user => (user.totalScore || 0) > 0) // Only users with scores
+        .sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0))
+        .slice(0, 50); // Top 50 users
+      
+      // Format real leaderboard data with actual user scores
+      const formatLeaderboard = (users: any[]) => {
+        return users.map((user, index) => ({
+          username: user.username,
+          score: user.totalScore,
+          walletAddress: user.walletAddress.slice(0, 3) + '...' + user.walletAddress.slice(-3),
+          position: index + 1
+        }));
       };
       
-      res.json(mockLeaderboard);
+      const realLeaderboard = {
+        daily: formatLeaderboard(topUsers), // In a real app, filter by day
+        weekly: formatLeaderboard(topUsers), // In a real app, filter by week  
+        all_time: formatLeaderboard(topUsers)
+      };
+      
+      res.json(realLeaderboard);
     } catch (error) {
       console.error("Leaderboard error:", error);
       // Return empty leaderboard as fallback

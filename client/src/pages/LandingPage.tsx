@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, ShoppingCart, Map, MessageCircle, Zap, User, LogOut, Wallet, Music, Trophy } from 'lucide-react';
+import { FileText, ShoppingCart, MessageCircle, Zap, User, LogOut, Wallet, Music, Trophy } from 'lucide-react';
 import { AuthModal } from '../components/AuthModal';
 import { Leaderboard } from '../components/Leaderboard';
 import { useAuthStore } from '../lib/stores/useWallet';
@@ -70,9 +70,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterGame, onEnterAd
     alert('Contract address coming soon! Stay tuned to our Telegram for updates.');
   };
 
-  const handleRoadmap = () => {
-    window.open('/roadmap', '_blank');
-  };
 
   const handleTelegram = () => {
     window.open('https://t.me/SaveCapybaraBot', '_blank');
@@ -229,7 +226,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterGame, onEnterAd
           transition={{ duration: 0.6, delay: 1.2 }}
           className="mb-8"
         >
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-4xl mx-auto">
             {/* Whitepaper Button */}
             <Card className="bg-amber-900/20 backdrop-blur-md border-amber-500/30 hover:bg-amber-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
               <CardContent className="p-4">
@@ -258,19 +255,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterGame, onEnterAd
               </CardContent>
             </Card>
 
-            {/* Roadmap Button */}
-            <Card className="bg-purple-900/20 backdrop-blur-md border-purple-500/30 hover:bg-purple-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
-              <CardContent className="p-4">
-                <Button
-                  onClick={handleRoadmap}
-                  variant="ghost"
-                  className="text-purple-100 hover:text-purple-300 flex flex-col items-center gap-2 h-auto p-3 w-full"
-                >
-                  <Map className="h-6 w-6" />
-                  <span className="text-sm font-semibold">Roadmap</span>
-                </Button>
-              </CardContent>
-            </Card>
 
             {/* Telegram Button */}
             <Card className="bg-blue-900/20 backdrop-blur-md border-blue-500/30 hover:bg-blue-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-xl">

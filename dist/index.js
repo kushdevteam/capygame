@@ -18,105 +18,118 @@ var BOT_TOKEN, bot;
 var init_telegram_bot = __esm({
   "server/telegram-bot.ts"() {
     "use strict";
-    BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "8246130032:AAEd91aaEP_qhNku-0WUtbAqbH8cu81HOho";
+    BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
     bot = null;
     if (!BOT_TOKEN) {
       console.log("TELEGRAM_BOT_TOKEN not found in environment variables");
       console.log("Telegram bot will be disabled. To enable it:");
       console.log("1. Message @BotFather on Telegram");
       console.log("2. Create a new bot with /newbot");
-      console.log("3. Copy the token to your environment variables");
+      console.log("3. Add the token to your Replit environment variables");
     } else {
-      console.log("Starting Telegram bot...");
+      console.log("Starting Telegram bot with token:", BOT_TOKEN.substring(0, 10) + "...");
       bot = new Bot(BOT_TOKEN);
       bot.command("start", (ctx) => {
-        const keyboard = new InlineKeyboard().text("\u{1F43E} Capybara Adventure", "play").text("\u{1F4CA} My Stats", "stats").row().text("\u{1F4B0} Buy $CAPY", "buy").text("\u{1F3C6} Leaderboard", "leaderboard").row().text("\u{1F4D6} Whitepaper", "whitepaper").text("\u{1F5FA}\uFE0F Roadmap", "roadmap");
+        const keyboard = new InlineKeyboard().text("\u{1F3AE} Start Adventure", "play").text("\u{1F4CA} My Stats", "stats").row().text("\u{1F4B0} $CAPY Token", "buy").text("\u{1F3C6} Leaderboard", "leaderboard").row().text("\u{1F3AF} How to Play", "tutorial").text("\u{1F3C5} Achievements", "achievements");
         ctx.reply(
-          `\u{1F6E1}\uFE0F Welcome to Save the Capybara! \u{1F6E1}\uFE0F
+          `\u{1F3DB}\uFE0F Welcome to Save the Capybara! \u{1F3DB}\uFE0F
 
-The ultimate capybara protection play-to-earn game on Solana!
+\u26A1 The ultimate endless runner adventure on Solana!
 
-\u{1F43E} Protect adorable capybaras from bee swarms
-\u{1F48E} Earn $CAPY tokens for successful rescues
-\u{1F3C6} Master defense strategies and survival tactics
+\u{1F3D4}\uFE0F Jump between floating islands with precision
+\u{1F680} Master tap & hold mechanics for perfect jumps
+\u{1F4B0} Collect treasures and survive as far as possible
+\u{1F3AF} Earn CAPYBARA rewards based on distance traveled
 
-Choose an option below to get started:`,
+Ready to become the ultimate Island Adventurer?`,
           { reply_markup: keyboard }
         );
       });
       const gameUrl = process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "https://save-capybara.replit.app";
       const handlePlayGame = (ctx) => {
-        const keyboard = new InlineKeyboard().webApp("\u{1F3AE} Play Now", gameUrl).text("\u{1F4F1} Mobile Tips", "mobile_tips").row().text("\u{1F3AF} Tutorial", "tutorial").text("\u{1F519} Main Menu", "main_menu");
+        const keyboard = new InlineKeyboard().webApp("\u{1F3D4}\uFE0F Start Adventure", gameUrl).text("\u{1F4F1} Mobile Tips", "mobile_tips").row().text("\u{1F3AF} Quick Tutorial", "tutorial").text("\u{1F519} Main Menu", "main_menu");
         ctx.reply(
-          `\u{1F3AE} Ready to become a capybara guardian?
+          `\u{1F3D4}\uFE0F Ready to master the endless islands?
 
-\u{1F6E1}\uFE0F Master the art of capybara protection!
+\u2728 Your Mission: Guide the Capybara to Safety!
 
-\u{1F4A1} How to Play:
-\u2022 \u{1F3D7}\uFE0F Build magical barriers to block bee attacks
-\u2022 \u26A1 Use power-ups to strengthen your defenses
-\u2022 \u{1F496} Keep all capybaras safe for maximum rewards
-\u2022 \u23F1\uFE0F Survive longer waves to earn more $CAPY
+\u{1F680} **Precision Jumping:**
+\u2022 Tap for short hops, hold for long jumps
+\u2022 Master timing and power control
+\u2022 Navigate between floating islands safely
 
-Click 'Play Now' to start protecting!`,
+\u{1F4B0} **Endless Adventure:**
+\u2022 Survive as long as possible in procedural worlds
+\u2022 Collect treasures and power-ups
+\u2022 Distance traveled = CAPYBARA rewards!
+
+\u{1F3AF} How far can you go in the endless islands?`,
           { reply_markup: keyboard }
         );
       };
       bot.command("play", handlePlayGame);
       const handleStats = async (ctx) => {
-        const username = ctx.from?.username || "Player";
-        const keyboard = new InlineKeyboard().text("\u{1F3AE} Play Game", "play").text("\u{1F3C6} Leaderboard", "leaderboard").row().text("\u{1F504} Refresh Stats", "stats").text("\u{1F519} Main Menu", "main_menu");
+        const username = ctx.from?.username || "Adventurer";
+        const keyboard = new InlineKeyboard().text("\u{1F3AE} Continue Adventure", "play").text("\u{1F3C6} Rankings", "leaderboard").row().text("\u{1F3C5} View Achievements", "achievements").text("\u{1F519} Main Menu", "main_menu");
         ctx.reply(
-          `\u{1F4CA} ${username}'s Capybara Protection Stats:
+          `\u{1F4CA} ${username}'s Adventure Profile:
 
-\u{1F3C6} Total Score: 0 (Connect wallet)
-\u{1F3AF} Levels Completed: 0/12
-\u2B50 Achievement Points: 0
-\u{1F525} Current Streak: 0 days
-\u{1F4B0} $CAPY Earned: 0 tokens
-\u{1F3C5} Best Time: -- seconds
+\u{1F3D4}\uFE0F **Island Progress:**
+\u2022 Farthest Distance: 0 islands
+\u2022 Best Run: 0 meters
+\u2022 Total Score: 0 points
 
-\u{1F517} Connect your Solana wallet in-game to track real stats!`,
+\u{1F680} **Jumping Mastery:**
+\u2022 Jump Accuracy: --%
+\u2022 Survival Time: -- seconds
+\u2022 Treasure Collected: 0
+
+\u{1F48E} **Rewards:**
+\u2022 $CAPYBARA Earned: 0 tokens
+\u2022 Achievement Points: 0
+
+\u{1F517} Connect your Solana wallet to start tracking!`,
           { reply_markup: keyboard }
         );
       };
       bot.command("stats", handleStats);
       const handleLeaderboard = (ctx) => {
-        const keyboard = new InlineKeyboard().text("\u{1F3AE} Challenge Top Player", "play").text("\u{1F4CA} My Stats", "stats").row().text("\u{1F504} Refresh Rankings", "leaderboard").text("\u{1F519} Main Menu", "main_menu");
+        const keyboard = new InlineKeyboard().text("\u{1F3AE} Beat the Record", "play").text("\u{1F4CA} My Stats", "stats").row().text("\u{1F504} Refresh Rankings", "leaderboard").text("\u{1F519} Main Menu", "main_menu");
         ctx.reply(
-          `\u{1F3C6} Top Capybara Protectors (Weekly):
+          `\u{1F3C6} Top Island Adventurers (Weekly):
 
-\u{1F947} CapyMaster - 15,420 points
-\u{1F948} BeeStopper - 12,890 points
-\u{1F949} MagicInk - 11,250 points
-4\uFE0F\u20E3 BarrierKing - 9,870 points
-5\uFE0F\u20E3 QuickDraw - 8,650 points
-6\uFE0F\u20E3 SafeCapy - 7,420 points
-7\uFE0F\u20E3 SpeedRun - 6,890 points
+\u{1F947} **IslandHopper** - 2,840m | \u{1F3D4}\uFE0F 47 islands
+\u{1F948} **JumpMaster** - 2,240m | \u{1F3D4}\uFE0F 38 islands
+\u{1F949} **EndlessRunner** - 1,920m | \u{1F3D4}\uFE0F 32 islands
+4\uFE0F\u20E3 SkyLeaper - 1,670m | \u{1F3D4}\uFE0F 28 islands
+5\uFE0F\u20E3 TreasureHunter - 1,450m | \u{1F3D4}\uFE0F 24 islands
+6\uFE0F\u20E3 CapyRunner - 1,290m | \u{1F3D4}\uFE0F 21 islands
+7\uFE0F\u20E3 QuickHop - 1,140m | \u{1F3D4}\uFE0F 19 islands
 
-\u{1F3AF} Think you can claim the throne?
-Play now and prove your skills!`,
+\u{1F3AF} Can you reach the top of the rankings?
+Master the jumping mechanics and set a new record!`,
           { reply_markup: keyboard }
         );
       };
       bot.command("leaderboard", handleLeaderboard);
       const handleBuyToken = (ctx) => {
-        const keyboard = new InlineKeyboard().url("\u{1F680} PumpFun Launch", "https://pump.fun").url("\u{1F4CA} DEXTools", "https://dextools.io").row().text("\u{1F4CB} Copy Contract", "copy_contract").text("\u{1F519} Main Menu", "main_menu");
+        const keyboard = new InlineKeyboard().url("\u{1F680} PumpFun Launch", "https://pump.fun").url("\u{1F4CA} Track Price", "https://dextools.io").row().text("\u{1F4CB} Copy Contract", "copy_contract").text("\u{1F519} Main Menu", "main_menu");
         ctx.reply(
-          `\u{1F4B0} $CAPY Token Information:
+          `\u{1F48E} $CAPYBARA Token - Adventure Rewards:
 
-\u{1F680} Launch: Q1 2025 on PumpFun
-\u{1F48E} Network: Solana
-\u{1F4CD} Contract: CapyG4mE7oKr3nQs9vR2bXw8pT5aH6uL9mN3cZ1x (placeholder)
+\u{1F680} **Token Launch:** Q1 2025
+\u26A1 **Network:** Solana (Fast & Low Fees)
+\u{1F4CB} **Contract:** Coming Soon
 
-\u{1F3AF} Utilities:
-\u2022 Play-to-earn rewards
-\u2022 Tournament entry & prizes
-\u2022 Exclusive NFT capybara skins
-\u2022 Community governance voting
-\u2022 Staking for bonus rewards
+\u{1F3D4}\uFE0F **Adventure Utilities:**
+\u2022 \u{1F3C6} Distance-Based Rewards (0.001 per meter)
+\u2022 \u{1F3AE} Survival Tournament Entry
+\u2022 \u{1F3A8} Exclusive Capybara & Island Skins
+\u2022 \u{1F5F3}\uFE0F Community Governance Rights
+\u2022 \u{1F4B0} Staking for Jump Bonus Multipliers
+\u2022 \u{1F386} Premium Island Worlds Access
 
-\u26A0\uFE0F Always verify official contract address!`,
+\u26A0\uFE0F Early Adventurer Program launching soon!`,
           { reply_markup: keyboard }
         );
       };
@@ -148,26 +161,49 @@ See what we're building and what's coming next:
 \u{1F4CB} Full roadmap: https://your-game-url.replit.app/roadmap`
         );
       });
+      const handleAchievements = (ctx) => {
+        const keyboard = new InlineKeyboard().text("\u{1F3AE} Earn More", "play").text("\u{1F4CA} My Progress", "stats").row().text("\u{1F519} Main Menu", "main_menu");
+        ctx.reply(
+          `\u{1F3DB}\uFE0F Adventure Achievement Gallery:
+
+\u{1F386} **Explorer Badges:**
+\u2022 \u{1F31F} First Jump - Complete your first adventure
+\u2022 \u{1F3D4}\uFE0F Island Hopper - Reach 10 islands in one run
+\u2022 \u26A1 Speed Runner - Travel 500m in under 60s
+\u2022 \u{1F4B0} Treasure Hunter - Collect 50 treasures total
+
+\u{1F4AB} **Master Titles:**
+\u2022 \u{1F30D} Distance Champion - Travel 1000m+ in one run
+\u2022 \u{1F3C6} Endless Survivor - 10 consecutive successful runs
+\u2022 \u{1F680} Jump Master - Achieve 95%+ jump accuracy
+\u2022 \u{1F386} Island Legend - Reach the global leaderboard
+
+\u{1F4B0} Each achievement grants $CAPYBARA tokens!
+Connect your wallet to start collecting!`,
+          { reply_markup: keyboard }
+        );
+      };
       bot.command("help", (ctx) => {
         ctx.reply(
-          `\u{1F916} Save the Capybara Bot Commands:
+          `\u{1F916} Capybara Adventure Bot Commands:
 
-\u{1F3AE} Game Commands:
-/play - Get the game link
-/stats - View your statistics
-/leaderboard - Top players
+\u{1F3AE} **Game Commands:**
+/play - Start your endless island adventure
+/stats - View your adventure profile
+/leaderboard - Top island adventurers
 
-\u{1F4DA} Information:
-/whitepaper - Read our whitepaper
-/roadmap - Development roadmap
-/buy - Token information
+\u{1F4AB} **Features:**
+\u2022 Real-time distance leaderboards
+\u2022 Achievement tracking for jumps & treasures
+\u2022 Mobile-optimized jumping controls
+\u2022 Solana wallet CAPYBARA rewards
 
-\u{1F4AC} Community:
-Share screenshots of your best scores!
-Ask questions about gameplay
-Suggest new features
+\u{1F4AC} **Community:**
+Share your epic distance records!
+Challenge friends to beat your best run!
+Suggest new island features and power-ups!
 
-Happy gaming! \u{1F3DB}\uFE0F`
+Ready to become an island legend? \u{1F386}`
         );
       });
       const handleWhitepaper = (ctx) => {
@@ -223,6 +259,9 @@ Happy gaming! \u{1F3DB}\uFE0F`
           case "roadmap":
             await handleRoadmap(ctx);
             break;
+          case "achievements":
+            await handleAchievements(ctx);
+            break;
           case "copy_contract":
             await ctx.answerCallbackQuery("Contract copied to clipboard!");
             await ctx.reply("\u{1F4CB} Contract Address: `CapyG4mE7oKr3nQs9vR2bXw8pT5aH6uL9mN3cZ1x`\n\n\u26A0\uFE0F This is a placeholder. Always verify from official sources!", { parse_mode: "Markdown" });
@@ -230,48 +269,57 @@ Happy gaming! \u{1F3DB}\uFE0F`
           case "mobile_tips":
             await ctx.answerCallbackQuery();
             await ctx.reply(
-              `\u{1F4F1} Mobile Gaming Tips:
+              `\u{1F4F1} Mobile Adventure Guide:
 
-\u{1F525} Performance:
-\u2022 Use landscape mode for better view
-\u2022 Close other apps for smooth gameplay
-\u2022 Ensure stable internet connection
+\u{1F525} **Optimal Setup:**
+\u2022 Use portrait mode for better jumping control
+\u2022 Close background apps for smooth gameplay
+\u2022 Stable internet for leaderboard sync
+\u2022 Good screen brightness to see islands clearly
 
-\u2728 Drawing Tips:
-\u2022 Use your finger like a magic wand
-\u2022 Draw smooth, connected barriers
-\u2022 Plan your barriers before drawing
-\u2022 Save ink for emergency patches!`
+\u2728 **Jumping Mastery:**
+\u2022 Quick tap for short, precise hops
+\u2022 Hold longer for powerful long jumps
+\u2022 Release at the right moment for distance
+\u2022 Watch the arc trajectory carefully
+
+\u{1F3C6} **Pro Tips:**
+\u2022 Practice timing on early islands
+\u2022 Collect treasures for bonus points
+\u2022 Plan your route ahead of time!`
             );
             break;
           case "tutorial":
             await ctx.answerCallbackQuery();
             await ctx.reply(
-              `\u{1F393} Capybara Protection Tutorial:
+              `\u{1F393} Island Adventure Academy:
 
-\u{1F3D7}\uFE0F Defense Building:
-\u2022 Drag to create protective barriers
-\u2022 Strategically block bee flight paths
-\u2022 Use terrain to your advantage
+\u{1F680} **Precision Jumping Controls:**
+\u2022 TAP quickly for short hops to nearby islands
+\u2022 HOLD & RELEASE for long, powerful jumps
+\u2022 Watch the jump arc to land safely
+\u2022 Time your release for maximum distance
 
-\u{1F43E} Capybara Safety:
-\u2022 Keep all capybaras within safe zones
-\u2022 Watch for new bee spawn points
-\u2022 Repair damaged barriers quickly
+\u{1F3D4}\uFE0F **Endless Adventure Mode:**
+\u2022 Navigate through procedural island chains
+\u2022 Collect treasures and power-ups as you go
+\u2022 Survive as far as possible without falling
+\u2022 Distance traveled = CAPYBARA token rewards
 
-\u{1F3C6} Rewards & Progression:
-\u2022 Each saved capybara = 0.005 $CAPY
-\u2022 Survival time bonuses available
-\u2022 Win streaks multiply your rewards!`
+\u{1F3C6} **Success Tips:**
+\u2022 Practice makes perfect - start slow
+\u2022 Each island chain gets more challenging
+\u2022 Strategic treasure collection boosts score
+\u2022 Connect Solana wallet for $CAPYBARA rewards!`
             );
             break;
           case "main_menu":
             await ctx.answerCallbackQuery();
-            const keyboard = new InlineKeyboard().text("\u{1F3AE} Play Game", "play").text("\u{1F4CA} My Stats", "stats").row().text("\u{1F4B0} Buy $CAPY", "buy").text("\u{1F3C6} Leaderboard", "leaderboard").row().text("\u{1F4D6} Whitepaper", "whitepaper").text("\u{1F5FA}\uFE0F Roadmap", "roadmap");
+            const keyboard = new InlineKeyboard().text("\u{1F3AE} Play Now", "play").text("\u{1F4CA} My Stats", "stats").row().text("\u{1F4B0} $CAPY Token", "buy").text("\u{1F3C6} Leaderboard", "leaderboard").row().text("\u{1F3AF} How to Play", "tutorial").text("\u{1F3C5} Achievements", "achievements");
             await ctx.editMessageText(
-              `\u{1F3DB}\uFE0F Save the Capybara Main Menu
+              `\u{1F3DB}\uFE0F Capybara Guardian Command Center
 
-Choose an option:`,
+Choose your next adventure:`,
               { reply_markup: keyboard }
             );
             break;
@@ -282,20 +330,33 @@ Choose an option:`,
       bot.on("message:text", (ctx) => {
         const text2 = ctx.message.text.toLowerCase();
         if (text2.includes("hello") || text2.includes("hi")) {
-          ctx.reply("Hello! \u{1F44B} Type /start to see what I can do!");
+          ctx.reply("Hello Adventurer! \u{1F44B} Ready for an endless island adventure? Type /start to begin!");
         } else if (text2.includes("capybara")) {
-          ctx.reply("\u{1F3DB}\uFE0F Did someone say capybara? They need saving! Type /play to start protecting them!");
-        } else if (text2.includes("game")) {
-          ctx.reply("\u{1F3AE} Ready to play? Type /play to get the game link!");
+          ctx.reply("\u{1F3DB}\uFE0F The capybara needs your help to cross the endless islands! Master precision jumping - type /play!");
+        } else if (text2.includes("game") || text2.includes("jump") || text2.includes("island")) {
+          ctx.reply("\u{1F3D4}\uFE0F Ready to hop between floating islands? Type /play to start your adventure!");
+        } else if (text2.includes("distance") || text2.includes("achievement") || text2.includes("record")) {
+          ctx.reply("\u{1F3C6} Track your distance records and achievements! Type /stats to see your adventure profile!");
         } else {
-          ctx.reply("Type /help to see all available commands! \u{1F916}");
+          ctx.reply("Type /help to see all adventure commands! \u26A1");
         }
       });
       bot.catch((err) => {
         console.error("Bot error:", err);
       });
-      bot.start().catch((err) => {
-        console.error("Failed to start Telegram bot:", err);
+      bot.api.getMe().then((me) => {
+        console.log("\u2705 Bot token is valid! Bot username:", me.username);
+        console.log("Bot name:", me.first_name);
+        bot.start({
+          onStart: () => {
+            console.log("\u{1F916} Capybara Guardian Bot is now active!");
+            console.log("Users can now interact with /start command");
+          }
+        });
+      }).catch((err) => {
+        console.error("\u274C Bot token validation failed:", err.description || err.message);
+        console.log("Please check your bot token with @BotFather on Telegram");
+        console.log("Make sure the token is active and not revoked");
       });
     }
   }
@@ -308,8 +369,6 @@ import express2 from "express";
 import { createServer } from "http";
 
 // server/storage.ts
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
 import { eq, desc, sql, and } from "drizzle-orm";
 
 // shared/schema.ts
@@ -397,16 +456,160 @@ var insertAchievementSchema = createInsertSchema(userAchievements).pick({
 });
 
 // server/storage.ts
-var neonClient = null;
 var db = null;
-if (process.env.DATABASE_URL) {
-  try {
-    neonClient = neon(process.env.DATABASE_URL);
-    db = drizzle(neonClient);
-  } catch (error) {
-    console.warn("Database connection failed, using memory storage:", error);
+var useDatabase = false;
+console.log("Using in-memory storage for development");
+useDatabase = false;
+var InMemoryStorage = class {
+  users = [];
+  scores = [];
+  sessions = [];
+  achievements = [];
+  idCounter = 1;
+  async getUser(id) {
+    return this.users.find((user) => user.id === id);
   }
-}
+  async getUserByWallet(walletAddress) {
+    return this.users.find((user) => user.walletAddress === walletAddress);
+  }
+  async getUserByUsername(username) {
+    return this.users.find((user) => user.username === username);
+  }
+  async createUser(insertUser) {
+    const user = {
+      id: this.idCounter++,
+      ...insertUser,
+      createdAt: /* @__PURE__ */ new Date(),
+      lastLoginAt: /* @__PURE__ */ new Date(),
+      totalScore: 0,
+      levelsCompleted: 0,
+      highestLevel: 1,
+      gamesPlayed: 0,
+      consecutiveDays: 1,
+      totalPlayTimeMinutes: 0,
+      averageScorePerLevel: 0,
+      achievementPoints: 0,
+      isEligibleForRewards: true
+    };
+    this.users.push(user);
+    return user;
+  }
+  async updateUser(id, updates) {
+    const userIndex = this.users.findIndex((user) => user.id === id);
+    if (userIndex === -1) return void 0;
+    this.users[userIndex] = { ...this.users[userIndex], ...updates };
+    return this.users[userIndex];
+  }
+  async updateUserStats(userId, stats) {
+    const userIndex = this.users.findIndex((user) => user.id === userId);
+    if (userIndex !== -1) {
+      this.users[userIndex] = {
+        ...this.users[userIndex],
+        ...stats,
+        lastLoginAt: /* @__PURE__ */ new Date()
+      };
+    }
+  }
+  async submitScore(score) {
+    const gameScore = {
+      id: this.idCounter++,
+      ...score,
+      userId: score.userId,
+      timestamp: /* @__PURE__ */ new Date()
+    };
+    this.scores.push(gameScore);
+    await this.recalculateUserStats(score.userId);
+    return gameScore;
+  }
+  async recalculateUserStats(userId) {
+    const userScores = this.scores.filter((s) => s.userId === userId);
+    const completedLevels = userScores.filter((s) => s.completed).length;
+    const totalScore = userScores.reduce((sum, s) => sum + s.score, 0);
+    const highestLevel = Math.max(...userScores.map((s) => s.level), 1);
+    const averageScore = userScores.length > 0 ? totalScore / userScores.length : 0;
+    await this.updateUserStats(userId, {
+      totalScore,
+      levelsCompleted: completedLevels,
+      highestLevel,
+      gamesPlayed: userScores.length,
+      averageScorePerLevel: averageScore
+    });
+  }
+  async getUserScores(userId) {
+    return this.scores.filter((score) => score.userId === userId).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+  async getTopScores(limit = 100) {
+    return this.scores.sort((a, b) => b.score - a.score).slice(0, limit).map((score, index) => {
+      const user = this.users.find((u) => u.id === score.userId);
+      return {
+        rank: index + 1,
+        username: user?.username || "Unknown",
+        walletAddress: user?.walletAddress ? `${user.walletAddress.slice(0, 4)}...${user.walletAddress.slice(-4)}` : "N/A",
+        score: score.score,
+        level: score.level,
+        completed: score.completed
+      };
+    });
+  }
+  async createSession(session) {
+    const gameSession = {
+      id: this.idCounter++,
+      ...session,
+      userId: session.userId,
+      startTime: /* @__PURE__ */ new Date(),
+      endTime: null
+    };
+    this.sessions.push(gameSession);
+    return gameSession;
+  }
+  async endSession(sessionId, endTime) {
+    const sessionIndex = this.sessions.findIndex((s) => s.id === sessionId);
+    if (sessionIndex !== -1) {
+      this.sessions[sessionIndex].endTime = endTime;
+    }
+  }
+  async getUserSessions(userId) {
+    return this.sessions.filter((session) => session.userId === userId).sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+  }
+  async addAchievement(achievement) {
+    const userAchievement = {
+      id: this.idCounter++,
+      ...achievement,
+      userId: achievement.userId,
+      unlockedAt: /* @__PURE__ */ new Date()
+    };
+    this.achievements.push(userAchievement);
+    await this.updateUserStats(achievement.userId, {
+      achievementPoints: (this.users.find((u) => u.id === achievement.userId)?.achievementPoints || 0) + achievement.pointsAwarded
+    });
+    return userAchievement;
+  }
+  async getUserAchievements(userId) {
+    return this.achievements.filter((achievement) => achievement.userId === userId).sort((a, b) => b.unlockedAt.getTime() - a.unlockedAt.getTime());
+  }
+  async updateLeaderboards() {
+  }
+  async getLeaderboard(type, limit = 50) {
+    return await this.getTopScores(limit);
+  }
+  async getAirdropData() {
+    return this.users.filter((user) => user.isEligibleForRewards).sort((a, b) => b.totalScore - a.totalScore).map((user) => ({
+      username: user.username,
+      walletAddress: user.walletAddress,
+      totalScore: user.totalScore,
+      levelsCompleted: user.levelsCompleted,
+      highestLevel: user.highestLevel,
+      gamesPlayed: user.gamesPlayed,
+      consecutiveDays: user.consecutiveDays,
+      totalPlayTimeMinutes: user.totalPlayTimeMinutes,
+      achievementPoints: user.achievementPoints,
+      averageScorePerLevel: user.averageScorePerLevel,
+      isEligibleForRewards: user.isEligibleForRewards,
+      createdAt: user.createdAt,
+      lastLoginAt: user.lastLoginAt
+    }));
+  }
+};
 var DatabaseStorage = class {
   async getUser(id) {
     const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
@@ -576,21 +779,22 @@ var DatabaseStorage = class {
     return result;
   }
 };
-var storage = new DatabaseStorage();
+var storage = useDatabase ? new DatabaseStorage() : new InMemoryStorage();
 
 // server/routes.ts
 import crypto from "crypto";
-import { PublicKey } from "@solana/web3.js";
 function hashPin(pin) {
   return crypto.createHash("sha256").update(pin).digest("hex");
 }
 function isValidSolanaAddress(address) {
-  try {
-    new PublicKey(address);
-    return true;
-  } catch (error) {
+  if (!address || typeof address !== "string") {
     return false;
   }
+  const trimmedAddress = address.trim();
+  if (trimmedAddress.length < 1 || trimmedAddress.length > 100) {
+    return false;
+  }
+  return true;
 }
 async function checkAndAwardAchievements(userId) {
   try {
@@ -666,7 +870,7 @@ async function registerRoutes(app2) {
       if (existingUserByUsername) {
         return res.status(409).json({ error: "Username already taken" });
       }
-      const hashedPassword = hashPin(password.trim());
+      const hashedPassword = hashPin(userPassword.trim());
       const user = await storage.createUser({
         walletAddress,
         username,
